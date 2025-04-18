@@ -2,6 +2,10 @@
   "dependencies": [
     "glfw3",
     "glad",
-    "linmath"
+    "linmath",
+    {
+      "name": "imgui",
+      "features": [ "docking-experimental" ]
+    }
   ]
 }
