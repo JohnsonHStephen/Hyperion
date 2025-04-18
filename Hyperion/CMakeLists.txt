@@ -8,7 +8,10 @@ find_path(LINMATH_INCLUDE_DIRS "linmath.h/linmath.h")
 find_package(imgui CONFIG REQUIRED)
 
 # Add source to this project's executable.
-add_executable (Hyperion "Hyperion.cpp" "Hyperion.h" "imgui/imgui_impl_glfw.cpp" "imgui/imgui_impl_glfw.h" "imgui/imgui_impl_opengl3.cpp" "imgui/imgui_impl_opengl3.h" "imgui/imgui_impl_opengl3_loader.h")
+add_executable (Hyperion)
+
+add_subdirectory ("src")
+add_subdirectory ("include")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Hyperion PROPERTY CXX_STANDARD 20)
