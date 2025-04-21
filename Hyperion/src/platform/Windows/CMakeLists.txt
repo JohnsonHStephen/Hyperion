@@ -15,4 +15,5 @@ target_sources (Hyperion
 			WindowsWindow.h
 )
 
+add_subdirectory ("GUI")
 add_subdirectory ("OpenGL")

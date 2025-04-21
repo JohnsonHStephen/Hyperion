@@ -14,7 +14,8 @@ Hyperion is a **learning-first game engine** being built to:
 
 ## 🚧 **Current Status**
 **Day 1**: Just getting started!
-- Create a window class for windows management.
+- Create a window managment class.
+- Created ImGui management class.
 
 ---
 
