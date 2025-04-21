@@ -13,22 +13,18 @@ Hyperion is a **learning-first game engine** being built to:
 
 
 ## 🚧 **Current Status**
-**Day 0**: Just getting started!
-- Project skeleton (C++/CMake) set up in Visual Studio.
-- AGPLv3 License added.
-- GLFW and ImGui libraries included with test window.
+**Day 1**: Just getting started!
+- Create a window class for windows management.
 
 ---
 
 ## 📥 **Setup (For Future Use)**
 *Requirements will evolve as the engine grows.*
 # Install VCPKG and setup ENV VCPKG_ROOT or install the following dependencies
-```bash
 - glfw3
 - glad
 - linmath
 - imgui (docking branch)
-```
 
 # Clone the repository
 ```bash

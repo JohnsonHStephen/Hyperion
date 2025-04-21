@@ -10,7 +10,7 @@ target_sources (Hyperion
 # private headers
 target_sources (Hyperion
 	PRIVATE
-		FILE_SET private
+		FILE_SET external
 		TYPE HEADERS
 		FILES
 			imgui_impl_glfw.h

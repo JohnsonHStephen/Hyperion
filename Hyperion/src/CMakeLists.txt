@@ -15,4 +15,12 @@ target_sources (Hyperion
 			Hyperion.h
 )
 
-add_subdirectory ("imgui")
+# precompiled header
+# this is auto included by all source files acording to the CMake documentation
+# https://cmake.org/cmake/help/v3.23/command/target_precompile_headers.html
+target_precompile_headers (Hyperion
+	PRIVATE
+		HyperionPCH.h
+)
+
+add_subdirectory ("platform")
