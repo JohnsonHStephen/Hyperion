@@ -6,3 +6,5 @@ target_sources (Hyperion
 		TYPE HEADERS
 		FILES
 )
+
+add_subdirectory ("GUI")

@@ -31,7 +31,9 @@ namespace Hyperion
 		void SetVSync(bool enabled);
 		inline bool IsVSync() const { return m_Data.VSync; }
 
-		inline virtual void* GetNativeWindow() const { return m_Window; }
+		inline void* GetNativeWindow() const { return m_Window; }
+
+		void ResetWindowContext();
 	private:
 		GLFWwindow* m_Window;
 

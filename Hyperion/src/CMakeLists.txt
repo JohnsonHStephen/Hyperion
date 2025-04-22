@@ -23,4 +23,5 @@ target_precompile_headers (Hyperion
 		HyperionPCH.h
 )
 
-add_subdirectory ("platform")
+add_subdirectory ("Core")
+add_subdirectory ("Platform")

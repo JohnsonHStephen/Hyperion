@@ -51,6 +51,8 @@ namespace Hyperion
 
 			data.EventCallback(window, key, scancode, action, mods);
 			});
+
+		return 0;
 	}
 
 	void WindowsWindow::Destroy() {
@@ -76,5 +78,9 @@ namespace Hyperion
 			glfwSwapInterval(0);
 
 		m_Data.VSync = enabled;
+	}
+	void WindowsWindow::ResetWindowContext() {
+		if (m_Window)
+			glfwMakeContextCurrent(m_Window);
 	}
 }

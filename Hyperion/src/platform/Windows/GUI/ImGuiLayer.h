@@ -1,17 +1,16 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "GUI/Layer.h"
 
 namespace Hyperion
 {
-	class ImGuiLayer {
+	class ImGuiLayer : private Layer {
 	public:
 		ImGuiLayer();
 		~ImGuiLayer();
 
-		void OnAttach(GLFWwindow* window);
-		void OnDetach();
+		void OnAttach() override;
+		void OnDetach() override;
 
 		void Begin();
 		void End();
