@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GUI/Layer.h"
+#include "Core/Layer.h"
 
 namespace Hyperion
 {

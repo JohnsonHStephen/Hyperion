@@ -10,7 +10,5 @@ int main() {
 
 	app->Run();
 
-	app->Close();
-
 	exit(EXIT_SUCCESS);
 }

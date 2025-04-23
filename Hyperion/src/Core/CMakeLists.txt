@@ -3,7 +3,8 @@
 # source code
 target_sources (Hyperion
 	PRIVATE
-		Application.cpp
+		"Application.cpp"
+		"Window.cpp"
 )
 
 # private headers
@@ -12,5 +13,6 @@ target_sources (Hyperion
 		FILE_SET core
 		TYPE HEADERS
 		FILES
-			Application.h
+			"Application.h"
+			"Window.h"
 )

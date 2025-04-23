@@ -24,4 +24,5 @@ target_precompile_headers (Hyperion
 )
 
 add_subdirectory ("Core")
+add_subdirectory ("Events")
 add_subdirectory ("Platform")

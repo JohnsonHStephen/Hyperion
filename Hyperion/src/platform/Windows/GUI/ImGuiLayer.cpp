@@ -7,6 +7,8 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include <GLFW/glfw3.h>
+
 namespace Hyperion
 {
 	Hyperion::ImGuiLayer::ImGuiLayer() {}
@@ -49,7 +51,9 @@ namespace Hyperion
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Update and Render additional Platform Windows
+		GLFWwindow* backup_current_context = glfwGetCurrentContext();
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent(backup_current_context);
 	}
 }

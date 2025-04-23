@@ -6,11 +6,6 @@ namespace Hyperion
 {
 	Application* Application::s_Instance = nullptr;
 
-	void Application::Event_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			m_Running = false;
-	}
-
 	Application* Application::Create() {
 		if (s_Instance)
 			return s_Instance;
@@ -31,13 +26,11 @@ namespace Hyperion
 			}
 			m_OverlayLayer->End();
 
-			m_Window->ResetWindowContext();
-
 			for (auto layer : m_Layers) {
 				layer->OnFrameEnd(0);
 			}
 
-			m_Window->OnUpdate();
+			m_Window->Render();
 		}
 
 	}
@@ -47,6 +40,8 @@ namespace Hyperion
 			layer->OnDetach();
 			delete layer;
 		}
+
+		m_Running = false;
 	}
 
 	void Application::PushLayer(Layer* layer) {
@@ -54,17 +49,38 @@ namespace Hyperion
 		layer->OnAttach();
 	}
 
+	void Application::OnEvent(Event& e) {
+		if (e.GetEventType() == EventType::WindowClose)
+			e.SetHandled(OnWindowClose(*(WindowCloseEvent*)&e));
+	}
+
+	bool Application::OnWindowClose(WindowCloseEvent& e) {
+		Close();
+		return false;
+	}
+
+	bool Application::OnWindowResize(WindowResizeEvent& e) {
+		if (e.GetWidth() == 0 || e.GetHeight() == 0) {
+			m_Minimized = true;
+			return false;
+		}
+
+		m_Minimized = false;
+		return false;
+	}
+
 	Application::Application() {
 		s_Instance = this;
 
-		m_Window = std::make_unique<WindowsWindow>(WindowsWindow::WindowProps());
+		m_Window = Window::Create();
 
-		m_Window->SetEventCallback(BIND_EVENT_FN(Event_Callback));
+		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
 		m_OverlayLayer = new ImGuiLayer();
 		PushLayer((Layer*)m_OverlayLayer);
 
 		m_Running = true;
 	}
+
 	Application::~Application() {}
 }

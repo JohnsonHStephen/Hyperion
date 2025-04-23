@@ -24,7 +24,6 @@ Hyperion is a **learning-first game engine** being built to:
 # Install VCPKG and setup ENV VCPKG_ROOT or install the following dependencies
 - glfw3
 - glad
-- linmath
 - imgui (docking branch)
 
 # Clone the repository

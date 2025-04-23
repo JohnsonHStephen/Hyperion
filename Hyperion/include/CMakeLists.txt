@@ -7,4 +7,4 @@ target_sources (Hyperion
 		FILES
 )
 
-add_subdirectory ("GUI")
+add_subdirectory ("Core")

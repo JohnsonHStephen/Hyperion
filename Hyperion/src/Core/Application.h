@@ -1,7 +1,8 @@
 #pragma once
 
 #include "GUI/ImGuiLayer.h"
-#include "GUI/WindowsWindow.h"
+#include "Window.h"
+#include <WindowEvent.h>
 
 namespace Hyperion
 {
@@ -15,16 +16,19 @@ namespace Hyperion
 
 		void PushLayer(Layer* layer);
 
-		inline WindowsWindow& GetWindow() { return *m_Window; }
+		void OnEvent(Event& e);
+
+		inline Window& GetWindow() { return *m_Window; }
 	private:
 		Application();
 		virtual ~Application();
 
-		void Event_Callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 
 	private:
 		static Application* s_Instance;
-		std::unique_ptr<WindowsWindow> m_Window;
+		std::unique_ptr<Window> m_Window;
 		ImGuiLayer* m_OverlayLayer;
 		std::vector<Layer*> m_Layers;
 
