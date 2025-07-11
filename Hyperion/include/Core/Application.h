@@ -1,14 +1,17 @@
 #pragma once
 
+#include "Core/HyperionPCH.h"
+#include "Events/WindowEvent.h"
 #include "GUI/ImGuiLayer.h"
-#include "Window.h"
-#include <WindowEvent.h>
+#include "GUI/Window.h"
 
 namespace Hyperion
 {
 	class Application {
 	public:
-		static Application* Create();
+		Application();
+		virtual ~Application();
+
 		inline static Application& Get() { return *s_Instance; }
 
 		void Run();
@@ -20,9 +23,6 @@ namespace Hyperion
 
 		inline Window& GetWindow() { return *m_Window; }
 	private:
-		Application();
-		virtual ~Application();
-
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -35,4 +35,6 @@ namespace Hyperion
 		bool m_Running = false;
 		bool m_Minimized = false;
 	};
+
+	Application* CreateApplication();
 } // namespace Hyperion

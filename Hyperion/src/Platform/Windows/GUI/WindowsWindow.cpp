@@ -2,9 +2,9 @@
 
 #include <glad/glad.h>
 
-#include "KeyEvent.h"
-#include "MouseEvent.h"
-#include "WindowEvent.h"
+#include "Events/KeyEvent.h"
+#include "Events/MouseEvent.h"
+#include "Events/WindowEvent.h"
 
 static void error_callback(int error, const char* description) {
 	fprintf(stderr, "Error: %s\n", description);

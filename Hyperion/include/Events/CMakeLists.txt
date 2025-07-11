@@ -1,12 +1,13 @@
-﻿# CMakeList.txt : CMake project for Hyperion, include sources
+﻿# CMakeList.txt : CMake project for Hyperion
 
 # private headers
 target_sources (Hyperion
-	PRIVATE
-		FILE_SET event
+	PUBLIC
+		FILE_SET api
 		TYPE HEADERS
 		FILES
 			"Event.h"
 			"MouseEvent.h"
 			"WindowEvent.h"
- "KeyEvent.h")
+			"KeyEvent.h"
+)

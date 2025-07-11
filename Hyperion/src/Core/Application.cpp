@@ -1,17 +1,10 @@
-#include "Application.h"
+#include "Core/Application.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 namespace Hyperion
 {
 	Application* Application::s_Instance = nullptr;
-
-	Application* Application::Create() {
-		if (s_Instance)
-			return s_Instance;
-
-		return new Application();
-	}
 
 	void Application::Run() {
 
@@ -70,6 +63,7 @@ namespace Hyperion
 	}
 
 	Application::Application() {
+		// TODO: Check instance doesnt already exist
 		s_Instance = this;
 
 		m_Window = Window::Create();

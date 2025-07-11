@@ -1,8 +1,8 @@
-#include "ImGuiLayer.h"
+#include "Gui/ImGuiLayer.h"
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 
-#include "Application.h"
+#include "Core/Application.h"
 #include "imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"

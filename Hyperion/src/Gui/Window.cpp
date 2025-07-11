@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "Gui/Window.h"
 
 #ifdef PLATFORM_WINDOWS
 #include "GUI/WindowsWindow.h"

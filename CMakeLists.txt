@@ -12,4 +12,4 @@ endif()
 project ("Hyperion")
 
 # Include sub-projects.
-add_subdirectory ("Hyperion")
+add_subdirectory ("Sandbox")
