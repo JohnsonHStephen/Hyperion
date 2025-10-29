@@ -7,6 +7,7 @@ target_sources (Hyperion
 		TYPE HEADERS
 		FILES
 			"Application.h"
+			"EngineInfo.h"
 			"Hyperion.h"
 			"Layer.h"
 			"Main.h"

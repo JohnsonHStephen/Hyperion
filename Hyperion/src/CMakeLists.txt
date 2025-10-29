@@ -3,3 +3,4 @@
 add_subdirectory ("Core")
 add_subdirectory ("Gui")
 add_subdirectory ("Platform")
+add_subdirectory ("Renderer")

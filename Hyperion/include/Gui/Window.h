@@ -32,5 +32,7 @@ namespace Hyperion
 		virtual bool IsVSync() const = 0;
 
 		virtual void* GetNativeWindow() const = 0;
+
+		virtual const char** RequiredInstanceExtensions(uint32_t& extensionCount) const = 0;
 	};
 }

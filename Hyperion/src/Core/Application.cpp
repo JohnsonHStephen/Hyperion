@@ -62,8 +62,11 @@ namespace Hyperion
 		return false;
 	}
 
-	Application::Application() {
-		// TODO: Check instance doesnt already exist
+	Application::Application(ApplicationInfo appInfo)
+							: m_AppInfo(appInfo) {
+		if (s_Instance != nullptr)
+			throw std::runtime_error("Application already created!");
+
 		s_Instance = this;
 
 		m_Window = Window::Create();

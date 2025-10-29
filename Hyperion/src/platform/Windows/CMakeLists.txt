@@ -8,4 +8,4 @@ target_sources (Hyperion
 )
 
 add_subdirectory ("GUI")
-add_subdirectory ("OpenGL")
+add_subdirectory ("Vulkan")
