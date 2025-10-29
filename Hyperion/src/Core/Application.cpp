@@ -1,4 +1,5 @@
 #include "Core/Application.h"
+#include <Vulkan/VulkanContext.h>
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
@@ -70,6 +71,8 @@ namespace Hyperion
 		s_Instance = this;
 
 		m_Window = Window::Create();
+
+		const VulkanContext test = VulkanContext::VulkanContext();
 
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 

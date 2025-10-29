@@ -13,4 +13,11 @@ namespace Hyperion
 		return nullptr;
 #endif
 	}
+    const char** Window::RequiredInstanceExtensions(uint32_t& extensionCount) {
+#ifdef PLATFORM_WINDOWS
+		return WindowsWindow::RequiredInstanceExtensions(extensionCount);
+#else
+		return nullptr;
+#endif
+    }
 }

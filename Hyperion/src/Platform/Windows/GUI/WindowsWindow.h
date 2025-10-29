@@ -23,7 +23,7 @@ namespace Hyperion
 
 		inline void* GetNativeWindow() const override { return m_Window; }
 
-		const char** RequiredInstanceExtensions(uint32_t& extensionCount) const override;
+		static const char** RequiredInstanceExtensions(uint32_t& extensionCount);
 
 	private:
 		GLFWwindow* m_Window;

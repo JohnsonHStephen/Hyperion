@@ -159,7 +159,7 @@ namespace Hyperion
 		m_Data.VSync = enabled;
 	}
 
-	const char** WindowsWindow::RequiredInstanceExtensions(uint32_t& extensionCount) const {
+	const char** WindowsWindow::RequiredInstanceExtensions(uint32_t& extensionCount) {
 		return glfwGetRequiredInstanceExtensions(&extensionCount);
 	}
 }

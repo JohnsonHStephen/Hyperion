@@ -21,6 +21,7 @@ namespace Hyperion
 		using EventCallbackFn = std::function<void(Event&)>;
 
 		static std::unique_ptr<Window> Create(const WindowProps& props = WindowProps());
+		static const char** RequiredInstanceExtensions(uint32_t& extensionCount);
 
 		virtual void Render() = 0;
 
@@ -33,6 +34,5 @@ namespace Hyperion
 
 		virtual void* GetNativeWindow() const = 0;
 
-		virtual const char** RequiredInstanceExtensions(uint32_t& extensionCount) const = 0;
 	};
 }
