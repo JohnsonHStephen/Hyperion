@@ -13,6 +13,11 @@ namespace Hyperion
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
 
 	class VulkanContext {
 	public:
@@ -54,6 +59,9 @@ namespace Hyperion
 		std::vector<VkPhysicalDevice> GetPhysicalDevices();
 		int RateDeviceSuitability(VkPhysicalDevice device);
 
+		bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
 	};
 }
