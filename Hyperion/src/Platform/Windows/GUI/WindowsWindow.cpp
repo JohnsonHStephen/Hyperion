@@ -1,7 +1,5 @@
 #include "WindowsWindow.h"
 
-#include <glad/glad.h>
-
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/WindowEvent.h"
@@ -44,7 +42,6 @@ namespace Hyperion
 		s_GLFWWindowCount++;
 
 		glfwMakeContextCurrent(m_Window);
-		gladLoadGL();
 		glfwSwapInterval(1);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);

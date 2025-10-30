@@ -7,9 +7,10 @@ namespace Hyperion
 {
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
+		std::optional<uint32_t> presentFamily;
 
 		bool isComplete() {
-			return graphicsFamily.has_value();
+			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
 
@@ -19,18 +20,24 @@ namespace Hyperion
 		~VulkanContext();
 
 		void Init();
+		void Cleanup();
 
 	private:
 		VkInstance m_instance;
 		VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkDevice m_device = VK_NULL_HANDLE;
+		VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+		VkQueue m_graphicsQueue = VK_NULL_HANDLE;
+		VkQueue m_presentQueue = VK_NULL_HANDLE;
 
 	private:
 		void CreateInstance();
 		void SetupDebugMessenger();
+		void CreateSurface();
 		void PickPhysicalDevice();
 		void CreateLogicalDevice();
+		void DestroySurface();
 
 		void DestroyDebugMessenger();
 

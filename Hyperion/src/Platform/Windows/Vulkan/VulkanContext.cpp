@@ -1,6 +1,12 @@
 #include "VulkanContext.h"
 
 #include <iostream>
+#include <set>
+#ifdef PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
+#endif
 
 #include "Core/Application.h"
 #include "Core/EngineInfo.h"
@@ -25,15 +31,24 @@ namespace Hyperion
 	}
 
 	VulkanContext::~VulkanContext() {
-		vkDestroyDevice(m_device, nullptr);
-		DestroyDebugMessenger();
-		vkDestroyInstance(m_instance, nullptr);
+		Cleanup();
 	}
 
 	void VulkanContext::Init() {
 		CreateInstance();
 		SetupDebugMessenger();
+		CreateSurface();
 		PickPhysicalDevice();
+		CreateLogicalDevice();
+	}
+
+	void VulkanContext::Cleanup() {
+		if (m_device != VK_NULL_HANDLE)
+			vkDestroyDevice(m_device, nullptr);
+		DestroyDebugMessenger();
+		DestroySurface();
+		if (m_instance != VK_NULL_HANDLE)
+			vkDestroyInstance(m_instance, nullptr);
 	}
 
 	void VulkanContext::CreateInstance() {
@@ -89,6 +104,23 @@ namespace Hyperion
 			throw std::runtime_error("failed to create instance! " + result);
 	}
 
+	void VulkanContext::CreateSurface() {
+		Window& window = Application::Get().GetWindow();
+	#ifdef PLATFORM_WINDOWS
+		Window::NativeWindowInfo info = window.GetNativeWindowInfo();
+		VkWin32SurfaceCreateInfoKHR createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.hinstance = (HINSTANCE)info.instance;
+		createInfo.hwnd = (HWND)info.handle;
+		if (vkCreateWin32SurfaceKHR(m_instance, &createInfo, nullptr, &m_surface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create Win32 window surface!");
+		}
+	#else
+		(void)window; // unused on non-Windows
+		throw std::runtime_error("Surface creation not implemented for this platform");
+	#endif
+	}
+
 	void VulkanContext::SetupDebugMessenger() {
 		if (!enableValidationLayers) return;
 
@@ -120,27 +152,33 @@ namespace Hyperion
 	void VulkanContext::CreateLogicalDevice() {
 		QueueFamilyIndices indices = FindQueueFamilies(m_physicalDevice);
 
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-		queueCreateInfo.queueCount = 1;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
 		float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (uint32_t queueFamily : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
-		createInfo.queueCreateInfoCount = 1;
-
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
 		if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
 		}
+
+		vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
+		vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
 	}
 
 	void VulkanContext::DestroyDebugMessenger() {
@@ -148,6 +186,13 @@ namespace Hyperion
 			return;
 
 		DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+	}
+
+	void VulkanContext::DestroySurface() {
+		if (m_surface == VK_NULL_HANDLE)
+			return;
+		vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+		m_surface = VK_NULL_HANDLE;
 	}
 
 	std::vector<const char*> VulkanContext::GetRequiredExtensions() {
@@ -290,7 +335,7 @@ namespace Hyperion
 		if (!deviceFeatures.geometryShader)
 			return 0;
 
-		// Application requires at least on queue family that supports VK_QUEUE_GRAPHICS_BIT
+		// Application requires graphics and present queue support for the window surface
 		if (!FindQueueFamilies(device).isComplete())
 			return 0;
 
@@ -313,7 +358,16 @@ namespace Hyperion
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 				indices.graphicsFamily = i;
 			}
-
+		
+			VkBool32 presentSupport = VK_FALSE;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
+			if (presentSupport) {
+				indices.presentFamily = i;
+			}
+		
+			if (indices.isComplete())
+				break;
+		
 			i++;
 		}
 

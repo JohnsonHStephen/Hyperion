@@ -2,6 +2,8 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include "Gui/Window.h"
 
@@ -22,6 +24,12 @@ namespace Hyperion
 		inline bool IsVSync() const override { return m_Data.VSync; }
 
 		inline void* GetNativeWindow() const override { return m_Window; }
+		inline NativeWindowInfo GetNativeWindowInfo() const override {
+			NativeWindowInfo info{};
+			info.handle = (void*)glfwGetWin32Window(m_Window);
+			info.instance = (void*)GetModuleHandle(NULL);
+			return info;
+		}
 
 		static const char** RequiredInstanceExtensions(uint32_t& extensionCount);
 
