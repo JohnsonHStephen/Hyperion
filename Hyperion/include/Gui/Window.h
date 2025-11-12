@@ -34,12 +34,14 @@ namespace Hyperion
 
 		virtual void* GetNativeWindow() const = 0;
 
-        struct NativeWindowInfo {
-            void* handle = nullptr;     // e.g. HWND on Windows
-            void* instance = nullptr;   // e.g. HINSTANCE on Windows
-        };
-        // Fill out platform-native window info without introducing platform headers here
-        virtual NativeWindowInfo GetNativeWindowInfo() const = 0;
+		struct NativeWindowInfo {
+			void* handle = nullptr;		// e.g. HWND on Windows
+			void* instance = nullptr;	// e.g. HINSTANCE on Windows
+		};
+		// Fill out platform-native window info without introducing platform headers here
+		virtual NativeWindowInfo GetNativeWindowInfo() const = 0;
+
+		virtual void GetFramebufferPixelSize(int& width, int& height) const = 0;
 
 	};
 }

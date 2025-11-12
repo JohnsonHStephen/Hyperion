@@ -36,6 +36,11 @@ namespace Hyperion
 		VkQueue m_graphicsQueue = VK_NULL_HANDLE;
 		VkQueue m_presentQueue = VK_NULL_HANDLE;
 
+		VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
+		std::vector<VkImage> m_swapChainImages;
+		VkFormat m_swapChainImageFormat;
+		VkExtent2D m_swapChainExtent;
+
 	private:
 		void CreateInstance();
 		void SetupDebugMessenger();
@@ -62,6 +67,11 @@ namespace Hyperion
 		bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+
+		void CreateSwapChain();
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	};
 }

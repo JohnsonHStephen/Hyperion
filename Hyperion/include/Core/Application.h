@@ -21,7 +21,7 @@ namespace Hyperion
 		Application(ApplicationInfo appInfo);
 		virtual ~Application();
 
-		inline static Application& Get() { return *s_Instance; }
+		inline static Application* Get() { return s_Instance; }
 
 		void Run();
 		void Close();
@@ -30,8 +30,8 @@ namespace Hyperion
 
 		void OnEvent(Event& e);
 
-		inline const Window& GetWindow() const { return *m_Window; }
-		inline Window& GetWindow() { return *m_Window; }
+		inline const Window* GetWindow() const { return m_Window.get(); }
+		inline Window* GetWindow() { return m_Window.get(); }
 
 		inline const ApplicationInfo& GetAppInfo() const { return m_AppInfo; }
 		inline ApplicationInfo& GetAppInfo() { return m_AppInfo; }

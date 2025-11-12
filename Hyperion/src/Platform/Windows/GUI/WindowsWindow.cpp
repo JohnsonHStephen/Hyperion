@@ -156,6 +156,10 @@ namespace Hyperion
 		m_Data.VSync = enabled;
 	}
 
+	void WindowsWindow::GetFramebufferPixelSize(int& width, int& height) const {
+		glfwGetFramebufferSize(m_Window, &width, &height);
+	}
+
 	const char** WindowsWindow::RequiredInstanceExtensions(uint32_t& extensionCount) {
 		return glfwGetRequiredInstanceExtensions(&extensionCount);
 	}
