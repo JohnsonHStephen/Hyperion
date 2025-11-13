@@ -27,17 +27,6 @@ namespace Hyperion
 		void Init();
 		void Cleanup();
 
-		// Getters for Vulkan handles
-		VkInstance GetInstance() const { return m_instance; }
-		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
-		VkDevice GetDevice() const { return m_device; }
-		VkQueue GetGraphicsQueue() const { return m_graphicsQueue; }
-		VkQueue GetPresentQueue() const { return m_presentQueue; }
-		VkSurfaceKHR GetSurface() const { return m_surface; }
-		VkSwapchainKHR GetSwapChain() const { return m_swapChain; }
-		uint32_t GetQueueFamilyIndex() const { return m_graphicsQueueFamilyIndex; }
-		VkFormat GetImageFormat() const { return m_swapChainImageFormat; }
-
 	private:
 		VkInstance m_instance;
 		VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -52,6 +41,7 @@ namespace Hyperion
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
 		VkExtent2D m_swapChainExtent;
+		std::vector<VkImageView> m_swapChainImageViews;
 
 	private:
 		void CreateInstance();
@@ -85,5 +75,6 @@ namespace Hyperion
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		void createImageViews();
 	};
 }
