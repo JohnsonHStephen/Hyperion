@@ -34,15 +34,15 @@ namespace Hyperion
 			glfwSetErrorCallback(error_callback);
 		}
 
+		// Tell GLFW not to create an OpenGL context (we're using Vulkan)
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
 		m_Window = glfwCreateWindow(props.Width, props.Height, m_Data.Title.c_str(), NULL, NULL);
 		if (!m_Window) {
 			glfwTerminate();
 			return -1;
 		}
 		s_GLFWWindowCount++;
-
-		glfwMakeContextCurrent(m_Window);
-		glfwSwapInterval(1);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(props.VSync);
@@ -144,15 +144,11 @@ namespace Hyperion
 
 	void WindowsWindow::Render() {
 		glfwPollEvents();
-		glfwSwapBuffers(m_Window);
+		// TODO: Add Vulkan rendering code here
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) {
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-
+		// TODO: Set vulkan vsync (present mode setting)
 		m_Data.VSync = enabled;
 	}
 

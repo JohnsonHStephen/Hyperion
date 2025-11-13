@@ -10,3 +10,4 @@ target_sources (Hyperion
 add_subdirectory ("Core")
 add_subdirectory ("Events")
 add_subdirectory ("Gui")
+add_subdirectory ("Renderer")

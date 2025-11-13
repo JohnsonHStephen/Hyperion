@@ -12,5 +12,4 @@ target_sources (Hyperion
 		FILE_SET windows
 		TYPE HEADERS
 		FILES
-			"VulkanContext.h"
 )

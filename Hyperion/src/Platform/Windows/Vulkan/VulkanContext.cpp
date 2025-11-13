@@ -1,4 +1,4 @@
-#include "VulkanContext.h"
+#include "Renderer/VulkanContext.h"
 
 #include <algorithm>
 #include <iostream>
@@ -190,6 +190,7 @@ namespace Hyperion
 			throw std::runtime_error("failed to create logical device!");
 		}
 
+		m_graphicsQueueFamilyIndex = indices.graphicsFamily.value();
 		vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
 		vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
 	}

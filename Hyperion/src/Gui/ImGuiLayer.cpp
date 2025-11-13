@@ -1,13 +1,11 @@
 #include "Gui/ImGuiLayer.h"
 
-#define IMGUI_IMPL_OPENGL_LOADER_GLAD
-
 #include "Core/Application.h"
-#include "imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "Renderer/VulkanContext.h"
 
 #include <GLFW/glfw3.h>
+#include "imgui.h"
+#include "imgui/imgui_impl_glfw.h"
 
 namespace Hyperion
 {
@@ -29,31 +27,58 @@ namespace Hyperion
 		//ImGui::StyleColorsLight();
 
 		// Setup Platform/Renderer backends
-		ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		//ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Application::Get()->GetWindow()->GetNativeWindow(), true);
+		/*ImGui_ImplVulkan_InitInfo init_info = {};
+		ImGui_ImplVulkan_Init(&init_info);
+
+		m_WindowData.Surface = Application::Get()->GetVulkanContext()->GetSurface();
+		const VkFormat requestSurfaceImageFormat[] = { Application::Get()->GetVulkanContext()->GetImageFormat() };
+		const VkPhysicalDevice physicalDevice = Application::Get()->GetVulkanContext()->GetPhysicalDevice();
+		m_WindowData.SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(physicalDevice, m_WindowData.Surface, requestSurfaceImageFormat, 1, VK_COLORSPACE_SRGB_NONLINEAR_KHR);
+
+
+		m_WindowData.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(physicalDevice, m_WindowData.Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));*/
 	}
 
 	void ImGuiLayer::OnDetach() {
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
+		//ImGui_ImplVulkan_Shutdown();
+		//ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::Begin() {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		//ImGui_ImplVulkan_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		
+		// Manually set display size (since we can't use ImGui_ImplGlfw_InitForVulkan)
+		ImGuiIO& io = ImGui::GetIO();
+		Window* window = Application::Get()->GetWindow();
+		GLFWwindow* glfwWindow = (GLFWwindow*)window->GetNativeWindow();
+		
+		int w = window->GetWidth(), h = window->GetHeight();
+		int display_w, display_h;
+		window->GetFramebufferPixelSize(display_w, display_h);
+		io.DisplaySize = ImVec2((float)w, (float)h);
+		if (w > 0 && h > 0)
+			io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
+		
+		// Set delta time (simple implementation - you may want to use a proper timer)
+		static double lastTime = 0.0;
+		double currentTime = glfwGetTime();
+		io.DeltaTime = lastTime > 0.0 ? (float)(currentTime - lastTime) : (float)(1.0f / 60.0f);
+		lastTime = currentTime;
+		
 		ImGui::NewFrame();
 	}
 
 	void ImGuiLayer::End() {
 		// Rendering
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
 
 		// Update and Render additional Platform Windows
-		GLFWwindow* backup_current_context = glfwGetCurrentContext();
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent(backup_current_context);
 	}
 }

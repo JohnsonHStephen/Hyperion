@@ -1,5 +1,4 @@
 #include "Core/Application.h"
-#include <Vulkan/VulkanContext.h>
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
@@ -14,11 +13,11 @@ namespace Hyperion
 				layer->OnFrameStart(0);
 			}
 
-			m_OverlayLayer->Begin();
+			//m_OverlayLayer->Begin();
 			for (auto layer : m_Layers) {
 				layer->OnOverlay();
 			}
-			m_OverlayLayer->End();
+			//m_OverlayLayer->End();
 
 			for (auto layer : m_Layers) {
 				layer->OnFrameEnd(0);
@@ -72,12 +71,12 @@ namespace Hyperion
 
 		m_Window = Window::Create();
 
-		const VulkanContext test = VulkanContext::VulkanContext();
+		m_VulkanContext = std::make_unique<VulkanContext>();
 
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
-		m_OverlayLayer = new ImGuiLayer();
-		PushLayer((Layer*)m_OverlayLayer);
+		//m_OverlayLayer = new ImGuiLayer();
+		//PushLayer((Layer*)m_OverlayLayer);
 
 		m_Running = true;
 	}

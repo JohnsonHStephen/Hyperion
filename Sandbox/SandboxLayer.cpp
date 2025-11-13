@@ -11,7 +11,7 @@ namespace Hyperion
 	void SandboxLayer::OnFrameStart(int ts) {}
 	void SandboxLayer::OnFrameEnd(int ts) {}
 	void SandboxLayer::OnOverlay() {
-		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+		/*ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
 
 		ImGui::Begin("Test");
@@ -23,6 +23,6 @@ namespace Hyperion
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Viewport");
 		ImGui::PopStyleVar();
-		ImGui::End();
+		ImGui::End();*/
 	}
 }

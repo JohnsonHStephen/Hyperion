@@ -4,6 +4,7 @@
 #include "Events/WindowEvent.h"
 #include "GUI/ImGuiLayer.h"
 #include "GUI/Window.h"
+#include "Renderer/VulkanContext.h"
 
 struct ApplicationInfo {
 	unsigned short appVersionVariant;
@@ -35,6 +36,9 @@ namespace Hyperion
 
 		inline const ApplicationInfo& GetAppInfo() const { return m_AppInfo; }
 		inline ApplicationInfo& GetAppInfo() { return m_AppInfo; }
+
+		inline const VulkanContext* GetVulkanContext() const { return m_VulkanContext.get(); }
+		inline VulkanContext* GetVulkanContext() { return m_VulkanContext.get(); }
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -42,7 +46,8 @@ namespace Hyperion
 	private:
 		static Application* s_Instance;
 		std::unique_ptr<Window> m_Window;
-		ImGuiLayer* m_OverlayLayer;
+		std::unique_ptr<VulkanContext> m_VulkanContext;
+		//ImGuiLayer* m_OverlayLayer;
 		std::vector<Layer*> m_Layers;
 
 		ApplicationInfo m_AppInfo;
