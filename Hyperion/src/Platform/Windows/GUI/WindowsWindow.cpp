@@ -1,5 +1,6 @@
 #include "WindowsWindow.h"
 
+#include "Core/Application.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/WindowEvent.h"
@@ -144,7 +145,7 @@ namespace Hyperion
 
 	void WindowsWindow::Render() {
 		glfwPollEvents();
-		// TODO: Add Vulkan rendering code here
+		Application::Get()->GetVulkanContext()->DrawFrame();
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) {

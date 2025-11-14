@@ -27,6 +27,8 @@ namespace Hyperion
 		void Init();
 		void Cleanup();
 
+		void DrawFrame();
+
 	private:
 		VkInstance m_instance;
 		VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -39,12 +41,19 @@ namespace Hyperion
 		VkRenderPass m_renderPass = VK_NULL_HANDLE;
 		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline m_graphicsPipeline = VK_NULL_HANDLE;
+		VkCommandPool m_commandPool = VK_NULL_HANDLE;
+		VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
 
 		VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
 		VkExtent2D m_swapChainExtent;
 		std::vector<VkImageView> m_swapChainImageViews;
+		std::vector<VkFramebuffer> m_swapChainFramebuffers;
+
+		VkSemaphore m_imageAvailableSemaphore;
+		VkSemaphore m_renderFinishedSemaphore;
+		VkFence m_inFlightFence;
 
 	private:
 		void CreateInstance();
@@ -86,5 +95,11 @@ namespace Hyperion
 		VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
 		void CreateRenderPass();
+		void CreateFramebuffers();
+		void CreateCommandPool();
+		void CreateCommandBuffer();
+		void CreateSyncObjects();
+
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	};
 }
