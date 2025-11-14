@@ -6,8 +6,16 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 
+# Define a custom command to run the batch file
+add_custom_target(CompileShaders
+    COMMAND cmd.exe /c ${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shaders/compile.bat
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shaders/
+    COMMENT "Compiling Shaders..."
+)
+
 # Add source to this project's executable.
 add_library (Hyperion)
+add_dependencies(Hyperion CompileShaders)
 
 if (PLATFORM_WINDOWS)
 target_compile_definitions(Hyperion PUBLIC PLATFORM_WINDOWS)

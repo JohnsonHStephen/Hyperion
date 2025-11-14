@@ -36,6 +36,9 @@ namespace Hyperion
 		VkQueue m_graphicsQueue = VK_NULL_HANDLE;
 		VkQueue m_presentQueue = VK_NULL_HANDLE;
 		uint32_t m_graphicsQueueFamilyIndex = (uint32_t)-1;
+		VkRenderPass m_renderPass = VK_NULL_HANDLE;
+		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+		VkPipeline m_graphicsPipeline = VK_NULL_HANDLE;
 
 		VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
 		std::vector<VkImage> m_swapChainImages;
@@ -75,6 +78,13 @@ namespace Hyperion
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		void createImageViews();
+
+		void CreateImageViews();
+
+		void CreateGraphicsPipeline();
+
+		VkShaderModule CreateShaderModule(const std::vector<char>& code);
+
+		void CreateRenderPass();
 	};
 }
