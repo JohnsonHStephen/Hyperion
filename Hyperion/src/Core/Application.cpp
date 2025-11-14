@@ -53,6 +53,8 @@ namespace Hyperion
 	}
 
 	bool Application::OnWindowResize(WindowResizeEvent& e) {
+		m_VulkanContext->ResizeFrameBuffer();
+
 		if (e.GetWidth() == 0 || e.GetHeight() == 0) {
 			m_Minimized = true;
 			return false;

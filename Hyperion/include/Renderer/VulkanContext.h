@@ -28,6 +28,7 @@ namespace Hyperion
 		void Cleanup();
 
 		void DrawFrame();
+		void ResizeFrameBuffer() { m_frameBufferResized = true; }
 
 	private:
 		VkInstance m_instance;
@@ -42,6 +43,8 @@ namespace Hyperion
 		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline m_graphicsPipeline = VK_NULL_HANDLE;
 		VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+		bool m_frameBufferResized = false;
 
 		VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
 		std::vector<VkImage> m_swapChainImages;
@@ -103,5 +106,8 @@ namespace Hyperion
 		void CreateSyncObjects();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+		void RecreateSwapChain();
+		void CleanupSwapChain();
 	};
 }

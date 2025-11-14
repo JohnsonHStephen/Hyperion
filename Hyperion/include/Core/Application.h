@@ -39,6 +39,8 @@ namespace Hyperion
 
 		inline const VulkanContext* GetVulkanContext() const { return m_VulkanContext.get(); }
 		inline VulkanContext* GetVulkanContext() { return m_VulkanContext.get(); }
+
+		inline bool IsMinimized() { return m_Minimized; }
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
