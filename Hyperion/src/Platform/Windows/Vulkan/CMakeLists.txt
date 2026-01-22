@@ -3,7 +3,6 @@
 # source code
 target_sources (Hyperion
 	PRIVATE
-		"VulkanContext.cpp"
 )
 
 # private headers

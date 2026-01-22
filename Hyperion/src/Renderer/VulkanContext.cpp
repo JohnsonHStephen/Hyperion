@@ -35,7 +35,12 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace Hyperion
 {
-	VulkanContext::VulkanContext() {
+	VulkanContext::VulkanContext():
+			m_bufferLayout({
+					{ShaderDataType::e_Float2,		"inPosition"},
+					{ShaderDataType::e_Float3,		"inColour"},
+				})
+	{
 		Init();
 	}
 
@@ -693,10 +698,15 @@ namespace Hyperion
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+
+		auto bindingDescription = GetBindingDescription();
+		auto attributeDescriptions = GetAttributeDescriptions();
+
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -993,5 +1003,35 @@ namespace Hyperion
 		}
 
 		vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+	}
+
+	VkVertexInputBindingDescription VulkanContext::GetBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription{};
+
+		bindingDescription.binding = 0;
+		bindingDescription.stride = m_bufferLayout.GetStride();
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	std::vector<VkVertexInputAttributeDescription> VulkanContext::GetAttributeDescriptions() {
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+		size_t location = 0;
+
+		for (auto attr : m_bufferLayout) {
+			attributeDescriptions.push_back(VkVertexInputAttributeDescription(
+				location,
+				0, // TODO: Support multiple Bindings
+				ShaderDataTypeToVulkan(attr.Type),
+				attr.Offset
+			));
+			location += attr.GetLocationSize();
+		}
+		
+
+
+
+		return attributeDescriptions;
 	}
 }

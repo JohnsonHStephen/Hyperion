@@ -3,6 +3,8 @@
 #include <optional>
 #include <Vulkan/vulkan.h>
 
+#include "Renderer/VulkanBuffer.h"
+
 namespace Hyperion
 {
 	struct QueueFamilyIndices {
@@ -60,6 +62,8 @@ namespace Hyperion
 		std::vector<VkFence> m_inFlightFences;
 		uint32_t m_currentFrame = 0;
 
+		BufferLayout m_bufferLayout;
+
 	private:
 		void CreateInstance();
 		void SetupDebugMessenger();
@@ -109,5 +113,8 @@ namespace Hyperion
 
 		void RecreateSwapChain();
 		void CleanupSwapChain();
+
+		VkVertexInputBindingDescription GetBindingDescription();
+		std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 	};
 }
