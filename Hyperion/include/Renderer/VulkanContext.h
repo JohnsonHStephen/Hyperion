@@ -11,7 +11,7 @@ namespace Hyperion
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
 
-		bool isComplete() {
+		bool isComplete() const {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
@@ -62,7 +62,7 @@ namespace Hyperion
 		std::vector<VkFence> m_inFlightFences;
 		uint32_t m_currentFrame = 0;
 
-		BufferLayout m_bufferLayout;
+		VulkanVertexBuffer m_vertexBuffer = VulkanVertexBuffer();
 
 	private:
 		void CreateInstance();
@@ -114,7 +114,7 @@ namespace Hyperion
 		void RecreateSwapChain();
 		void CleanupSwapChain();
 
-		VkVertexInputBindingDescription GetBindingDescription();
-		std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
+		static VkVertexInputBindingDescription GetBindingDescription(BufferLayout bufferLayout);
+		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions(BufferLayout bufferLayout);
 	};
 }

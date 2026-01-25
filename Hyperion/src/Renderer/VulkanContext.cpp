@@ -16,6 +16,7 @@
 #include "Core/EngineInfo.h"
 #include "Gui/Window.h"
 
+#include <glm/glm.hpp>
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -35,12 +36,17 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace Hyperion
 {
-	VulkanContext::VulkanContext():
-			m_bufferLayout({
+	struct Vertex {
+		glm::vec2 pos;
+		glm::vec3 color;
+	};
+
+	VulkanContext::VulkanContext() {
+		BufferLayout bufferLayout = BufferLayout({
 					{ShaderDataType::e_Float2,		"inPosition"},
 					{ShaderDataType::e_Float3,		"inColour"},
-				})
-	{
+			});
+		m_vertexBuffer.SetLayout(bufferLayout);
 		Init();
 	}
 
@@ -63,6 +69,16 @@ namespace Hyperion
 		CreateGraphicsPipeline();
 		CreateFramebuffers();
 		CreateCommandPool();
+
+		m_vertexBuffer.Init(100, m_device, m_physicalDevice);
+
+		const std::vector<Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		};
+		m_vertexBuffer.SetData(&vertices[0], sizeof(vertices[0]) * vertices.size());
+
 		CreateCommandBuffers();
 		CreateSyncObjects();
 	}
@@ -71,6 +87,8 @@ namespace Hyperion
 		vkDeviceWaitIdle(m_device);
 
 		CleanupSwapChain();
+
+		m_vertexBuffer.Cleanup();
 
 		vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
@@ -699,8 +717,8 @@ namespace Hyperion
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-		auto bindingDescription = GetBindingDescription();
-		auto attributeDescriptions = GetAttributeDescriptions();
+		auto bindingDescription = GetBindingDescription(m_vertexBuffer.GetLayout());
+		auto attributeDescriptions = GetAttributeDescriptions(m_vertexBuffer.GetLayout());
 
 		vertexInputInfo.vertexBindingDescriptionCount = 1;
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -971,6 +989,10 @@ namespace Hyperion
 		scissor.extent = m_swapChainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+		VkBuffer vertexBuffers[] = { m_vertexBuffer.GetInternalBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1005,21 +1027,21 @@ namespace Hyperion
 		vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 	}
 
-	VkVertexInputBindingDescription VulkanContext::GetBindingDescription() {
+	VkVertexInputBindingDescription VulkanContext::GetBindingDescription(BufferLayout bufferLayout) {
 		VkVertexInputBindingDescription bindingDescription{};
 
 		bindingDescription.binding = 0;
-		bindingDescription.stride = m_bufferLayout.GetStride();
+		bindingDescription.stride = bufferLayout.GetStride();
 		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		return bindingDescription;
 	}
 
-	std::vector<VkVertexInputAttributeDescription> VulkanContext::GetAttributeDescriptions() {
+	std::vector<VkVertexInputAttributeDescription> VulkanContext::GetAttributeDescriptions(BufferLayout bufferLayout) {
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 		size_t location = 0;
 
-		for (auto attr : m_bufferLayout) {
+		for (auto attr : bufferLayout) {
 			attributeDescriptions.push_back(VkVertexInputAttributeDescription(
 				location,
 				0, // TODO: Support multiple Bindings

@@ -3,6 +3,7 @@
 #
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 
@@ -32,6 +33,7 @@ add_subdirectory ("external")
 set_property(TARGET Hyperion PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(Hyperion PRIVATE glfw)
+target_link_libraries(Hyperion PRIVATE glm::glm)
 target_link_libraries(Hyperion PRIVATE imgui::imgui)
 target_link_libraries(Hyperion PRIVATE Vulkan::Vulkan)
 
