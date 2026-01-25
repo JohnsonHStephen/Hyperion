@@ -69,23 +69,8 @@ namespace Hyperion
 		CreateGraphicsPipeline();
 		CreateFramebuffers();
 		CreateCommandPool();
-
-		VulkanBuffer stagingBuffer = VulkanBuffer();
-
-		stagingBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_device, m_physicalDevice);
-		m_vertexBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_device, m_physicalDevice);
-
-		const std::vector<Vertex> vertices = {
-			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-		};
-		stagingBuffer.SetData(&vertices[0], sizeof(vertices[0]) * vertices.size());
-
-		CopyBuffer(stagingBuffer.GetInternalBuffer(), m_vertexBuffer.GetInternalBuffer(), sizeof(vertices[0]) * vertices.size());
-
-		stagingBuffer.Cleanup();
-
+		CreateVertexBuffer();
+		CreateIndexBuffer();
 		CreateCommandBuffers();
 		CreateSyncObjects();
 	}
@@ -95,6 +80,7 @@ namespace Hyperion
 
 		CleanupSwapChain();
 
+		m_indexBuffer.Cleanup();
 		m_vertexBuffer.Cleanup();
 
 		vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
@@ -999,8 +985,9 @@ namespace Hyperion
 		VkBuffer vertexBuffers[] = { m_vertexBuffer.GetInternalBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer.GetInternalBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -1033,6 +1020,43 @@ namespace Hyperion
 
 		vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 	}
+
+	void VulkanContext::CreateVertexBuffer() {
+		VulkanBuffer stagingBuffer = VulkanBuffer();
+
+		stagingBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_device, m_physicalDevice);
+		m_vertexBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_device, m_physicalDevice);
+
+		const std::vector<Vertex> vertices = {
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+		};
+
+		stagingBuffer.SetData(&vertices[0], sizeof(vertices[0]) * vertices.size());
+
+		CopyBuffer(stagingBuffer.GetInternalBuffer(), m_vertexBuffer.GetInternalBuffer(), sizeof(vertices[0]) * vertices.size());
+
+		stagingBuffer.Cleanup();
+	}
+
+	void VulkanContext::CreateIndexBuffer() {
+		VulkanBuffer stagingBuffer = VulkanBuffer();
+
+		stagingBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_device, m_physicalDevice);
+		m_indexBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_device, m_physicalDevice);
+
+		const std::vector<uint16_t> indices = {
+			0, 1, 2, 2, 3, 0
+		};
+		stagingBuffer.SetData(&indices[0], sizeof(indices[0]) * indices.size());
+
+		CopyBuffer(stagingBuffer.GetInternalBuffer(), m_indexBuffer.GetInternalBuffer(), sizeof(indices[0]) * indices.size());
+
+		stagingBuffer.Cleanup();
+	}
+
 
 	void VulkanContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const {
 		VkCommandBufferAllocateInfo allocInfo{};

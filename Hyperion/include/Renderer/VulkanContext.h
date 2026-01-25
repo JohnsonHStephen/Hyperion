@@ -63,6 +63,7 @@ namespace Hyperion
 		uint32_t m_currentFrame = 0;
 
 		VulkanVertexBuffer m_vertexBuffer = VulkanVertexBuffer();
+		VulkanBuffer m_indexBuffer = VulkanBuffer();
 
 	private:
 		void CreateInstance();
@@ -114,6 +115,8 @@ namespace Hyperion
 		void RecreateSwapChain();
 		void CleanupSwapChain();
 
+		void CreateVertexBuffer();
+		void CreateIndexBuffer();
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const;
 
 		static VkVertexInputBindingDescription GetBindingDescription(BufferLayout bufferLayout);
