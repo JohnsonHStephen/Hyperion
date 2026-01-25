@@ -114,6 +114,8 @@ namespace Hyperion
 		void RecreateSwapChain();
 		void CleanupSwapChain();
 
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const;
+
 		static VkVertexInputBindingDescription GetBindingDescription(BufferLayout bufferLayout);
 		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions(BufferLayout bufferLayout);
 	};

@@ -2,53 +2,53 @@
 
 namespace Hyperion
 {
-	VulkanVertexBuffer::VulkanVertexBuffer() {}
+	VulkanBuffer::VulkanBuffer() {}
 
-	VulkanVertexBuffer::~VulkanVertexBuffer() {}
+	VulkanBuffer::~VulkanBuffer() {}
 
-	void VulkanVertexBuffer::Init(uint32_t size, VkDevice device, VkPhysicalDevice physicalDevice) {
+	void VulkanBuffer::Init(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkDevice& device, VkPhysicalDevice& physicalDevice) {
 		m_device = device;
 		m_physicalDevice = physicalDevice;
-		m_size = m_layout.GetStride() * size;
+		m_size = size;
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = m_size;
-		bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_vertexBuffer) != VK_SUCCESS) {
+		if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create vertex buffer!");
 		}
 
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(m_device, m_vertexBuffer, &memRequirements);
+		vkGetBufferMemoryRequirements(m_device, m_buffer, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_vertexBufferMemory) != VK_SUCCESS) {
+		if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_bufferMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate vertex buffer memory!");
 		}
 
-		vkBindBufferMemory(m_device, m_vertexBuffer, m_vertexBufferMemory, 0);
+		vkBindBufferMemory(m_device, m_buffer, m_bufferMemory, 0);
 	}
 
-	void VulkanVertexBuffer::Cleanup() const {
-		vkDestroyBuffer(m_device, m_vertexBuffer, nullptr);
-		vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);
+	void VulkanBuffer::Cleanup() const {
+		vkDestroyBuffer(m_device, m_buffer, nullptr);
+		vkFreeMemory(m_device, m_bufferMemory, nullptr);
 	}
 
-	void VulkanVertexBuffer::SetData(const void* data, uint32_t size) const {
+	void VulkanBuffer::SetData(const void* data, uint32_t size) const {
 		void* tempData;
-		vkMapMemory(m_device, m_vertexBufferMemory, 0, m_size, 0, &tempData);
+		vkMapMemory(m_device, m_bufferMemory, 0, m_size, 0, &tempData);
 		memcpy(tempData, data, (size_t)size);
-		vkUnmapMemory(m_device, m_vertexBufferMemory);
+		vkUnmapMemory(m_device, m_bufferMemory);
 	}
 
-	uint32_t VulkanVertexBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	uint32_t VulkanBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
 
@@ -60,5 +60,4 @@ namespace Hyperion
 
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
-
 }

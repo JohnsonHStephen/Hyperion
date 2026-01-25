@@ -42,11 +42,6 @@ namespace Hyperion
 	};
 
 	VulkanContext::VulkanContext() {
-		BufferLayout bufferLayout = BufferLayout({
-					{ShaderDataType::e_Float2,		"inPosition"},
-					{ShaderDataType::e_Float3,		"inColour"},
-			});
-		m_vertexBuffer.SetLayout(bufferLayout);
 		Init();
 	}
 
@@ -57,6 +52,11 @@ namespace Hyperion
 	void VulkanContext::Init() {
 		if (Application::Get()->GetWindow() == nullptr)
 			throw std::runtime_error("The window must be initialized before vulkan!");
+
+		m_vertexBuffer.SetLayout(BufferLayout({
+			{ ShaderDataType::e_Float2, "inPosition" },
+			{ ShaderDataType::e_Float3, "inColour" },
+			}));
 
 		CreateInstance();
 		SetupDebugMessenger();
@@ -70,14 +70,21 @@ namespace Hyperion
 		CreateFramebuffers();
 		CreateCommandPool();
 
-		m_vertexBuffer.Init(100, m_device, m_physicalDevice);
+		VulkanBuffer stagingBuffer = VulkanBuffer();
+
+		stagingBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_device, m_physicalDevice);
+		m_vertexBuffer.Init(100, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_device, m_physicalDevice);
 
 		const std::vector<Vertex> vertices = {
 			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
 			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
 			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
-		m_vertexBuffer.SetData(&vertices[0], sizeof(vertices[0]) * vertices.size());
+		stagingBuffer.SetData(&vertices[0], sizeof(vertices[0]) * vertices.size());
+
+		CopyBuffer(stagingBuffer.GetInternalBuffer(), m_vertexBuffer.GetInternalBuffer(), sizeof(vertices[0]) * vertices.size());
+
+		stagingBuffer.Cleanup();
 
 		CreateCommandBuffers();
 		CreateSyncObjects();
@@ -1025,6 +1032,39 @@ namespace Hyperion
 		}
 
 		vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+	}
+
+	void VulkanContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const {
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = m_commandPool;
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkBufferCopy copyRegion{};
+		copyRegion.size = size;
+		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+		vkEndCommandBuffer(commandBuffer);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(m_graphicsQueue);
+
+		vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
 	}
 
 	VkVertexInputBindingDescription VulkanContext::GetBindingDescription(BufferLayout bufferLayout) {

@@ -130,29 +130,40 @@ namespace Hyperion
 		uint32_t m_Stride = 0;
 	};
 
-	class VulkanVertexBuffer {
+	class VulkanBuffer {
 	public:
-		VulkanVertexBuffer();
-		~VulkanVertexBuffer();
+		VulkanBuffer();
+		~VulkanBuffer();
 
-		void Init(uint32_t size, VkDevice device, VkPhysicalDevice physicalDevice);
+		void Init(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkDevice& device, VkPhysicalDevice& physicalDevice);
 		void Cleanup() const;
 
-		VkBuffer GetInternalBuffer() const { return m_vertexBuffer; };
-
-		inline const BufferLayout& GetLayout() const { return m_layout; }
-		inline void SetLayout(const BufferLayout& layout) { m_layout = layout; }
+		VkBuffer GetInternalBuffer() const { return m_buffer; };
 
 		void SetData(const void* data, uint32_t size) const;
 
 	private:
 		VkDevice m_device = VK_NULL_HANDLE;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-		BufferLayout m_layout;
-		uint32_t m_size = 0;
+		VkDeviceSize m_size = 0;
 
-		VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
+		VkBuffer m_buffer = VK_NULL_HANDLE;
+		VkDeviceMemory m_bufferMemory = VK_NULL_HANDLE;
+
+	private:
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	};
+
+
+	class VulkanVertexBuffer: public VulkanBuffer {
+	public:
+		VulkanVertexBuffer(): VulkanBuffer() {}
+
+		inline const BufferLayout& GetLayout() const { return m_layout; }
+		inline void SetLayout(const BufferLayout& layout) { m_layout = layout; }
+
+	private:
+		BufferLayout m_layout;
 
 	private:
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
