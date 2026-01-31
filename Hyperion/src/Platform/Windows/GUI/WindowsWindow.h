@@ -9,45 +9,52 @@
 
 namespace Hyperion
 {
-	class WindowsWindow: public Window {
+	class WindowsWindow: public Window
+	{
 	public:
 		WindowsWindow(const WindowProps& props);
 		~WindowsWindow();
 
-		void Render();
+		void pollEvents();
 
-		inline unsigned int GetWidth() const override { return m_Data.Width; }
-		inline unsigned int GetHeight() const override { return m_Data.Height; }
+		inline unsigned int getWidth() const override { return m_Data.Width; }
+		inline unsigned int getHeight() const override { return m_Data.Height; }
+		inline bool isMinimized() const override { return (m_Data.Width == 0 || m_Data.Height == 0); }
 
-		inline void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
-		void SetVSync(bool enabled) override;
-		inline bool IsVSync() const override { return m_Data.VSync; }
+		inline void setEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
+		void setVSync(bool enabled) override;
+		inline bool isVSync() const override { return m_Data.VSync; }
+		inline bool isResized() const override { return m_Data.Resized; }
+		inline void resetResized() override { m_Data.Resized = false; }
 
-		inline void* GetNativeWindow() const override { return m_Window; }
-		inline NativeWindowInfo GetNativeWindowInfo() const override {
+		inline void* getNativeWindow() const override { return m_Window; }
+		inline NativeWindowInfo getNativeWindowInfo() const override
+		{
 			NativeWindowInfo info{};
 			info.handle = (void*)glfwGetWin32Window(m_Window);
 			info.instance = (void*)GetModuleHandle(NULL);
 			return info;
 		}
 
-		void GetFramebufferPixelSize(int& width, int& height) const override;
+		void getFramebufferPixelSize(int& width, int& height) const override;
 
-		static const char** RequiredInstanceExtensions(uint32_t& extensionCount);
+		static const char** requiredInstanceExtensions(uint32_t& extensionCount);
 
 	private:
 		GLFWwindow* m_Window;
 
-		struct WindowData {
+		struct WindowData
+		{
 			std::string Title;
 			unsigned int Width, Height;
 			bool VSync;
+			bool Resized;
 
 			EventCallbackFn EventCallback;
 		};
 		WindowData m_Data;
 
-		int Init(const WindowProps& props);
-		void Destroy();
+		int init(const WindowProps& props);
+		void destroy();
 	};
 }

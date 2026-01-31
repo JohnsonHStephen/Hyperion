@@ -9,7 +9,7 @@ namespace Hyperion
 	class SandboxApp: public Application {
 	public:
 		SandboxApp(ApplicationInfo appInfo): Application(appInfo) {
-			PushLayer(new SandboxLayer());
+			pushLayer(new SandboxLayer());
 		}
 
 		~SandboxApp() {
@@ -18,7 +18,7 @@ namespace Hyperion
 
 	};
 
-	Application* CreateApplication() {
+	Application* createApplication() {
 		ApplicationInfo appInfo{};
 		appInfo.appName = "Test Name";
 		appInfo.appVersionVariant = 0;

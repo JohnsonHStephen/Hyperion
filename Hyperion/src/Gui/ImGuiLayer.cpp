@@ -1,7 +1,6 @@
 #include "Gui/ImGuiLayer.h"
 
 #include "Core/Application.h"
-#include "Renderer/VulkanContext.h"
 
 #include <GLFW/glfw3.h>
 #include "imgui.h"
@@ -27,7 +26,7 @@ namespace Hyperion
 		//ImGui::StyleColorsLight();
 
 		// Setup Platform/Renderer backends
-		//ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Application::Get()->GetWindow()->GetNativeWindow(), true);
+		//ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Application::get()->getWindow()->getNativeWindow(), true);
 		/*ImGui_ImplVulkan_InitInfo init_info = {};
 		ImGui_ImplVulkan_Init(&init_info);
 
@@ -52,12 +51,12 @@ namespace Hyperion
 		
 		// Manually set display size (since we can't use ImGui_ImplGlfw_InitForVulkan)
 		ImGuiIO& io = ImGui::GetIO();
-		Window* window = Application::Get()->GetWindow();
-		GLFWwindow* glfwWindow = (GLFWwindow*)window->GetNativeWindow();
+		Window* window = Application::get()->getWindow();
+		GLFWwindow* glfwWindow = (GLFWwindow*)window->getNativeWindow();
 		
-		int w = window->GetWidth(), h = window->GetHeight();
+		int w = window->getWidth(), h = window->getHeight();
 		int display_w, display_h;
-		window->GetFramebufferPixelSize(display_w, display_h);
+		window->getFramebufferPixelSize(display_w, display_h);
 		io.DisplaySize = ImVec2((float)w, (float)h);
 		if (w > 0 && h > 0)
 			io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);

@@ -4,12 +4,12 @@
 #include "Application.h"
 #include "Hyperion.h"
 
-extern Hyperion::Application* Hyperion::CreateApplication();
+extern Hyperion::Application* Hyperion::createApplication();
 
 int main() {
-	Hyperion::Application* app = Hyperion::CreateApplication();
+	Hyperion::Application* app = Hyperion::createApplication();
 
-	app->Run();
+	app->run();
 
 	exit(EXIT_SUCCESS);
 }

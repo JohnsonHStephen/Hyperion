@@ -4,9 +4,11 @@
 #include "Events/WindowEvent.h"
 #include "GUI/ImGuiLayer.h"
 #include "GUI/Window.h"
-#include "Renderer/VulkanContext.h"
+#include "Renderer/VulkanDevice.h"
+#include "Renderer/VulkanRenderer.h"
 
-struct ApplicationInfo {
+struct ApplicationInfo
+{
 	unsigned short appVersionVariant;
 	unsigned short appVersionMajor;
 	unsigned short appVersionMinor;
@@ -17,46 +19,45 @@ struct ApplicationInfo {
 
 namespace Hyperion
 {
-	class Application {
+	class Application
+	{
 	public:
 		Application(ApplicationInfo appInfo);
 		virtual ~Application();
 
-		inline static Application* Get() { return s_Instance; }
+		inline static Application* get() { return s_instance; }
 
-		void Run();
-		void Close();
+		void run();
+		void close();
 
-		void PushLayer(Layer* layer);
+		void pushLayer(Layer* layer);
 
-		void OnEvent(Event& e);
+		void onEvent(Event& e);
 
-		inline const Window* GetWindow() const { return m_Window.get(); }
-		inline Window* GetWindow() { return m_Window.get(); }
+		inline const Window* getWindow() const { return m_window.get(); }
+		inline Window* getWindow() { return m_window.get(); }
 
-		inline const ApplicationInfo& GetAppInfo() const { return m_AppInfo; }
-		inline ApplicationInfo& GetAppInfo() { return m_AppInfo; }
+		inline const ApplicationInfo& getAppInfo() const { return m_appInfo; }
+		inline ApplicationInfo& getAppInfo() { return m_appInfo; }
 
-		inline const VulkanContext* GetVulkanContext() const { return m_VulkanContext.get(); }
-		inline VulkanContext* GetVulkanContext() { return m_VulkanContext.get(); }
+		inline const VulkanDevice* getVulkanDevice() const { return &m_device; }
+		inline VulkanDevice* getVulkanDevice() { return &m_device; }
 
-		inline bool IsMinimized() { return m_Minimized; }
+		inline bool isMinimized() { return m_window->isMinimized(); }
 	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResize(WindowResizeEvent& e);
+		bool onWindowClose(WindowCloseEvent& e);
 
 	private:
-		static Application* s_Instance;
-		std::unique_ptr<Window> m_Window;
-		std::unique_ptr<VulkanContext> m_VulkanContext;
-		//ImGuiLayer* m_OverlayLayer;
-		std::vector<Layer*> m_Layers;
+		static Application* s_instance;
+		std::unique_ptr<Window> m_window = nullptr;
+		VulkanDevice m_device{};
+		VulkanRenderer m_renderer{};
+		std::vector<Layer*> m_layers{};
 
-		ApplicationInfo m_AppInfo;
+		ApplicationInfo m_appInfo;
 
-		bool m_Running = false;
-		bool m_Minimized = false;
+		bool m_running = false;
 	};
 
-	Application* CreateApplication();
+	Application* createApplication();
 } // namespace Hyperion

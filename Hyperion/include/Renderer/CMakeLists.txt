@@ -6,6 +6,10 @@ target_sources (Hyperion
 		FILE_SET api
 		TYPE HEADERS
 		FILES
+			
 			"VulkanBuffer.h"
-			"VulkanContext.h"
+			"VulkanDevice.h"
+			"VulkanPipeline.h"
+			"VulkanRenderer.h"
+			"VulkanSwapChain.h"
 )

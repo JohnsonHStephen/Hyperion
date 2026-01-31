@@ -6,18 +6,20 @@
 
 namespace Hyperion
 {
-	std::unique_ptr<Window> Window::Create(const WindowProps& props) {
+	std::unique_ptr<Window> Window::create(const WindowProps& props)
+	{
 #ifdef PLATFORM_WINDOWS
 		return std::make_unique<WindowsWindow>(props);
 #else
 		return nullptr;
 #endif
 	}
-    const char** Window::RequiredInstanceExtensions(uint32_t& extensionCount) {
+	const char** Window::requiredInstanceExtensions(uint32_t& extensionCount)
+	{
 #ifdef PLATFORM_WINDOWS
-		return WindowsWindow::RequiredInstanceExtensions(extensionCount);
+		return WindowsWindow::requiredInstanceExtensions(extensionCount);
 #else
 		return nullptr;
 #endif
-    }
+	}
 }
