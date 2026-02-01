@@ -10,7 +10,7 @@ namespace Hyperion
 		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 		VulkanSwapChain() {}
-		~VulkanSwapChain() {}
+		~VulkanSwapChain() { cleanup(); }
 
 		VulkanSwapChain(const VulkanSwapChain&) = delete;
 		VulkanSwapChain& operator=(const VulkanSwapChain&) = delete;
@@ -28,6 +28,7 @@ namespace Hyperion
 		VkExtent2D getSwapChainExtent() const { return m_swapChainExtent; }
 		uint32_t width() const { return m_swapChainExtent.width; }
 		uint32_t height() const { return m_swapChainExtent.height; }
+		uint32_t frameIndex() const { return m_currentFrame; }
 
 		float extentAspectRatio() const
 		{

@@ -25,16 +25,16 @@ namespace Hyperion
 
 		VkCommandBuffer getCurrentCommandBuffer() const
 		{
-			if (!m_isFrameStarted)
-				std::runtime_error("Cannot get command buffer when frame not in progress");
-			return m_commandBuffers[m_currentFrameIndex];
+			return m_commandBuffers[getFrameIndex()];
 		}
 
 		int getFrameIndex() const
 		{
 			if (!m_isFrameStarted)
-				std::runtime_error("Cannot get command buffer when frame not in progress");
-			return m_currentFrameIndex;
+				std::runtime_error("Cannot get frame index when frame not in progress");
+			if (!m_swapChain)
+				std::runtime_error("Cannot get frame index swapchain doesnt exist");
+			return m_swapChain->frameIndex();
 		}
 
 		VkCommandBuffer beginFrame();

@@ -22,8 +22,11 @@ namespace Hyperion
 		if (m_isFrameStarted)
 			std::runtime_error("Can't call beginFrame while already in progress");
 
+		if (Application::get()->isMinimized())
+			return nullptr;
+
 		auto result = m_swapChain->acquireNextImage(&m_currentImageIndex);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || Application::get()->isMinimized())
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			recreateSwapChain();
 			return nullptr;
@@ -72,7 +75,7 @@ namespace Hyperion
 		}
 
 		m_isFrameStarted = false;
-		m_currentFrameIndex = (m_currentFrameIndex + 1) % VulkanSwapChain::MAX_FRAMES_IN_FLIGHT;
+		m_currentFrameIndex = m_swapChain->frameIndex();
 	}
 
 	void VulkanRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
@@ -149,8 +152,10 @@ namespace Hyperion
 
 	void VulkanRenderer::recreateSwapChain()
 	{
+		vkDeviceWaitIdle(m_device->device());
+
 		auto width = Application::get()->getWindow()->getWidth();
-		auto height = Application::get()->getWindow()->getWidth();
+		auto height = Application::get()->getWindow()->getHeight();
 
 		VkExtent2D extent(width, height);
 		if (m_swapChain == nullptr)

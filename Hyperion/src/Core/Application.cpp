@@ -87,11 +87,11 @@ namespace Hyperion
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 				vkCmdDraw(commandBuffer, vertexBuffer.getInstanceCount(), 1, 0, 0);
 
-				m_window->pollEvents();
-
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
 			}
+
+			m_window->pollEvents();
 		}
 
 		vertexBuffer.cleanup();
