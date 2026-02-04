@@ -1,9 +1,5 @@
 #include "Core/Application.h"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
 #include "Graphics/Vulkan/VulkanBuffer.h"
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
@@ -13,32 +9,17 @@ namespace Hyperion
 {
 	Application* Application::s_instance = nullptr;
 
-	struct vertex
-	{
-		glm::vec2 position{};
-		glm::vec3 colour{};
-	};
-
 	void Application::run()
 	{
-		BufferLayout layout = BufferLayout({
-			{ ShaderDataType::e_Float2, "inPosition" },
-			{ ShaderDataType::e_Float3, "inColour" },
-			});
-
-		std::vector<vertex> vertices{
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		std::vector<Mesh::Vertex> vertices{
+			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+			{{-0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
 
-		std::vector<VulkanBuffer> vertexBuffers = std::vector<VulkanBuffer>(1);
-		vertexBuffers[0].init(
-			&m_device,
-			layout,
-			vertices.size(),
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		std::vector<Mesh> meshs;
+		meshs.emplace_back("Triangle", &m_device).loadCustomData(vertices, {0, 1, 2, 0, 2, 3});
 
 		while (m_running)
 		{
@@ -62,9 +43,7 @@ namespace Hyperion
 					layer->OnFrameEnd(0);
 				}
 
-				vertexBuffers[0].setData(vertices.data(), sizeof(vertices[0]) * vertices.size());
-
-				m_meshPipeline.draw(commandBuffer, vertexBuffers);
+				m_meshPipeline.draw(commandBuffer, meshs);
 
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
@@ -72,8 +51,6 @@ namespace Hyperion
 
 			m_window->pollEvents();
 		}
-
-		vertexBuffers[0].cleanup();
 	}
 
 	void Application::close()

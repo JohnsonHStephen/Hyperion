@@ -31,9 +31,9 @@ namespace Hyperion
 		int getFrameIndex() const
 		{
 			if (!m_isFrameStarted)
-				std::runtime_error("Cannot get frame index when frame not in progress");
+				throw std::runtime_error("Cannot get frame index when frame not in progress");
 			if (!m_swapChain)
-				std::runtime_error("Cannot get frame index swapchain doesnt exist");
+				throw std::runtime_error("Cannot get frame index swapchain doesnt exist");
 			return m_swapChain->frameIndex();
 		}
 

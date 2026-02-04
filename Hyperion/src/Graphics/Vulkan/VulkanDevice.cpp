@@ -594,12 +594,12 @@ namespace Hyperion
 		vkFreeCommandBuffers(m_device_, m_commandPool, 1, &commandBuffer);
 	}
 
-	void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+	void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset)
 	{
 		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 		VkBufferCopy copyRegion{};
-		copyRegion.srcOffset = 0;  // Optional
+		copyRegion.srcOffset = srcOffset;
 		copyRegion.dstOffset = 0;  // Optional
 		copyRegion.size = size;
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);

@@ -4,6 +4,8 @@
 
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
+#include <Graphics/Mesh.h>
+
 namespace Hyperion
 {
 	class MeshPipeline
@@ -12,7 +14,7 @@ namespace Hyperion
 		void init(VulkanDevice* device, VkRenderPass renderPass);
 		void cleanup();
 
-		void draw(VkCommandBuffer& commandBuffer, const std::vector<VulkanBuffer>& vertexBuffers);
+		void draw(VkCommandBuffer& commandBuffer, const std::vector<Mesh>& meshs);
 	private:
 		void createGraphicsPipelineLayout();
 		void createGraphicsPipeline(VkRenderPass renderPass);

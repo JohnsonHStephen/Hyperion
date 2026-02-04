@@ -9,13 +9,14 @@ namespace Hyperion
 		const std::string& vertFilepath,
 		const std::string& fragFilepath,
 		const PipelineConfigInfo& configInfo,
-		const BufferLayout& bufferLayout,
+		const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+		const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions,
 		uint32_t binding)
 	{
 		m_device = device;
 		m_pipelineLayout = configInfo.pipelineLayout;
 
-		createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, bufferLayout, binding);
+		createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, bindingDescriptions, attributeDescriptions, binding);
 	}
 
 	void VulkanPipeline::cleanup()
@@ -137,7 +138,8 @@ namespace Hyperion
 		const std::string& vertFilepath,
 		const std::string& fragFilepath,
 		const PipelineConfigInfo& configInfo,
-		const BufferLayout& bufferLayout,
+		const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+		const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions,
 		uint32_t binding)
 	{
 		auto vertShaderCode = readFile(vertFilepath);
@@ -166,9 +168,6 @@ namespace Hyperion
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-		auto bindingDescriptions = getBindingDescriptions(bufferLayout, binding);
-		auto attributeDescriptions = getAttributeDescriptions(bufferLayout, binding);
 
 		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -199,73 +198,6 @@ namespace Hyperion
 		{
 			throw std::runtime_error("failed to create graphics pipeline: " + std::to_string(result));
 		}
-	}
-
-	static VkFormat shaderDataTypeToVulkan(ShaderDataType type)
-	{
-		switch (type)
-		{
-		case ShaderDataType::e_Float:		return VK_FORMAT_R32_SFLOAT;
-		case ShaderDataType::e_Float2:		return VK_FORMAT_R32G32_SFLOAT;
-		case ShaderDataType::e_Float3:		return VK_FORMAT_R32G32B32_SFLOAT;
-		case ShaderDataType::e_Float4:		return VK_FORMAT_R32G32B32A32_SFLOAT;
-		case ShaderDataType::e_Int:			return VK_FORMAT_R32_SINT;
-		case ShaderDataType::e_Int2:		return VK_FORMAT_R32G32_SINT;
-		case ShaderDataType::e_Int3:		return VK_FORMAT_R32G32B32_SINT;
-		case ShaderDataType::e_Int4:		return VK_FORMAT_R32G32B32A32_SINT;
-		case ShaderDataType::e_Bool:		return VK_FORMAT_R8_UINT;
-		}
-
-		return VK_FORMAT_UNDEFINED;
-	}
-
-	static uint32_t shaderDataTypeToVulkanLocationSize(ShaderDataType type)
-	{
-		switch (type)
-		{
-		case ShaderDataType::e_Float:	return 1;
-		case ShaderDataType::e_Float2:	return 1;
-		case ShaderDataType::e_Float3:	return 1;
-		case ShaderDataType::e_Float4:	return 1;
-		case ShaderDataType::e_Int:		return 1;
-		case ShaderDataType::e_Int2:	return 1;
-		case ShaderDataType::e_Int3:	return 1;
-		case ShaderDataType::e_Int4:	return 1;
-		case ShaderDataType::e_Bool:	return 1;
-		}
-
-		return 0;
-	}
-
-	std::vector<VkVertexInputBindingDescription> VulkanPipeline::getBindingDescriptions(const BufferLayout& bufferLayout, uint32_t binding)
-	{
-		std::vector<VkVertexInputBindingDescription> bindingDescription(1);
-
-		bindingDescription[0].binding = binding;
-		bindingDescription[0].stride = bufferLayout.getStride();
-		bindingDescription[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		return bindingDescription;
-	}
-
-	std::vector<VkVertexInputAttributeDescription> VulkanPipeline::getAttributeDescriptions(const BufferLayout& bufferLayout, uint32_t binding)
-	{
-		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
-		size_t location = 0;
-
-		for (auto attr : bufferLayout)
-		{
-			VkVertexInputAttributeDescription attributeDescription{};
-			attributeDescription.binding = binding;
-			attributeDescription.location = location;
-			attributeDescription.format = shaderDataTypeToVulkan(attr.Type);
-			attributeDescription.offset = attr.Offset;
-
-			attributeDescriptions.push_back(attributeDescription);
-			location += shaderDataTypeToVulkanLocationSize(attr.Type);
-		}
-
-		return attributeDescriptions;
 	}
 
 	void VulkanPipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule)

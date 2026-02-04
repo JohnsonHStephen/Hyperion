@@ -4,7 +4,6 @@
 
 #include "Core/HyperionPCH.h"
 
-#include "Graphics/Vulkan/VulkanBuffer.h"
 #include "Graphics/Vulkan/VulkanDevice.h"
 
 namespace Hyperion
@@ -45,7 +44,8 @@ namespace Hyperion
 			const std::string& vertFilepath,
 			const std::string& fragFilepath,
 			const PipelineConfigInfo& configInfo,
-			const BufferLayout& bufferLayout,
+			const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+			const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions,
 			uint32_t binding = 0);
 		void cleanup();
 
@@ -61,11 +61,9 @@ namespace Hyperion
 			const std::string& vertFilepath,
 			const std::string& fragFilepath,
 			const PipelineConfigInfo& configInfo,
-			const BufferLayout& bufferLayout,
+			const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+			const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions,
 			uint32_t binding);
-
-		static std::vector<VkVertexInputBindingDescription> getBindingDescriptions(const BufferLayout& bufferLayout, uint32_t binding);
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(const BufferLayout& bufferLayout, uint32_t binding);
 
 		void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 

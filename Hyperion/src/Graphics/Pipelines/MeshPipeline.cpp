@@ -17,16 +17,18 @@ namespace Hyperion
 		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
-	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const std::vector<VulkanBuffer>& vertexBuffers)
+	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const std::vector<Mesh>& meshs)
 	{
 		m_pipeline.bind(commandBuffer);
 
-		for (const auto& vertexBuffer : vertexBuffers)
+		for (const auto& mesh : meshs)
 		{
-			VkBuffer buffers[] = { vertexBuffer.getInternalBuffer() };
+			VkBuffer buffers[] = { mesh.getVertexBuffer() };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-			vkCmdDraw(commandBuffer, vertexBuffer.getInstanceCount(), 1, 0, 0);
+			vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdDrawIndexed(commandBuffer, mesh.getIndexCount(), 1, 0, 0, 0);
 		}
 
 	}
@@ -48,10 +50,14 @@ namespace Hyperion
 
 	void MeshPipeline::createGraphicsPipeline(VkRenderPass renderPass)
 	{
-		BufferLayout layout = BufferLayout({
-			{ ShaderDataType::e_Float2, "inPosition" },
-			{ ShaderDataType::e_Float3, "inColour" },
-			});
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
+		bindingDescriptions[0].binding = 0;
+		bindingDescriptions[0].stride = sizeof(Mesh::Vertex);
+		bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+		attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Mesh::Vertex, position) });
+		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, colour) });
 
 		PipelineConfigInfo pipelineConfig{};
 		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, Application::get()->getWindow()->getWidth(), Application::get()->getWindow()->getHeight());
@@ -63,6 +69,7 @@ namespace Hyperion
 			"../../../../Hyperion/include/Graphics/shaders/vert.spv",
 			"../../../../Hyperion/include/Graphics/shaders/frag.spv",
 			pipelineConfig,
-			layout);
+			bindingDescriptions,
+			attributeDescriptions);
 	}
 }

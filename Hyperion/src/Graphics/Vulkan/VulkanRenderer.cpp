@@ -20,7 +20,7 @@ namespace Hyperion
 	VkCommandBuffer VulkanRenderer::beginFrame()
 	{
 		if (m_isFrameStarted)
-			std::runtime_error("Can't call beginFrame while already in progress");
+			throw std::runtime_error("Can't call beginFrame while already in progress");
 
 		if (Application::get()->isMinimized())
 			return nullptr;
@@ -54,7 +54,7 @@ namespace Hyperion
 	void VulkanRenderer::endFrame()
 	{
 		if (!m_isFrameStarted)
-			std::runtime_error("Can't call endFrame while frame is not in progress");
+			throw std::runtime_error("Can't call endFrame while frame is not in progress");
 
 		auto commandBuffer = getCurrentCommandBuffer();
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -81,9 +81,9 @@ namespace Hyperion
 	void VulkanRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
 	{
 		if (!m_isFrameStarted)
-			std::runtime_error("Can't call beginSwapChainRenderPass if frame is not in progress");
+			throw std::runtime_error("Can't call beginSwapChainRenderPass if frame is not in progress");
 		if (commandBuffer != getCurrentCommandBuffer())
-			std::runtime_error("Can't begin render pass on command buffer from a different frame");
+			throw std::runtime_error("Can't begin render pass on command buffer from a different frame");
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -116,9 +116,9 @@ namespace Hyperion
 	void VulkanRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
 	{
 		if (!m_isFrameStarted)
-			std::runtime_error("Can't call endSwapChainRenderPass if frame is not in progress");
+			throw std::runtime_error("Can't call endSwapChainRenderPass if frame is not in progress");
 		if (commandBuffer != getCurrentCommandBuffer())
-			std::runtime_error("Can't end render pass on command buffer from a different frame");
+			throw std::runtime_error("Can't end render pass on command buffer from a different frame");
 
 		vkCmdEndRenderPass(commandBuffer);
 	}
