@@ -2,7 +2,7 @@
 
 #include <Vulkan/vulkan.h>
 
-#include "Renderer/VulkanPipeline.h"
+#include "Graphics/Vulkan/VulkanPipeline.h"
 
 namespace Hyperion
 {

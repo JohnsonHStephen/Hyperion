@@ -3,8 +3,8 @@
 #include <optional>
 #include <Vulkan/vulkan.h>
 
-#include "Renderer/VulkanDevice.h"
-#include "Renderer/VulkanSwapChain.h"
+#include "Graphics/Vulkan/VulkanDevice.h"
+#include "Graphics/Vulkan/VulkanSwapChain.h"
 
 namespace Hyperion
 {

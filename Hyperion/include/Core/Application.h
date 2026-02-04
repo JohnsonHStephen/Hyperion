@@ -4,12 +4,11 @@
 
 #include "Events/WindowEvent.h"
 
-#include "GUI/ImGuiLayer.h"
-#include "GUI/Window.h"
-
-#include "Renderer/Pipelines/MeshPipeline.h"
-#include "Renderer/VulkanDevice.h"
-#include "Renderer/VulkanRenderer.h"
+#include "Graphics/Gui/ImGuiLayer.h"
+#include "Graphics/Gui/Window.h"
+#include "Graphics/Pipelines/MeshPipeline.h"
+#include "Graphics/Vulkan/VulkanDevice.h"
+#include "Graphics/Vulkan/VulkanRenderer.h"
 
 struct ApplicationInfo
 {

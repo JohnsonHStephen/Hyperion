@@ -9,8 +9,8 @@ find_package(Vulkan REQUIRED)
 
 # Define a custom command to run the batch file
 add_custom_target(CompileShaders
-    COMMAND cmd.exe /c ${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shaders/compile.bat
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shaders/
+    COMMAND cmd.exe /c ${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/Shaders/compile.bat
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/Shaders/
     COMMENT "Compiling Shaders..."
 )
 

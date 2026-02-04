@@ -1,6 +1,11 @@
 ﻿# CMakeList.txt : CMake project for Hyperion, include sources
 
+target_sources (Hyperion
+	PRIVATE
+		FILE_SET engineScope
+		TYPE HEADERS
+		FILES
+)
+
 add_subdirectory ("Core")
-add_subdirectory ("Gui")
-add_subdirectory ("Platform")
-add_subdirectory ("Renderer")
+add_subdirectory ("Graphics")

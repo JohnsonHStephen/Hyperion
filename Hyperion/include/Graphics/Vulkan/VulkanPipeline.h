@@ -4,8 +4,8 @@
 
 #include "Core/HyperionPCH.h"
 
-#include "Renderer/VulkanBuffer.h"
-#include "Renderer/VulkanDevice.h"
+#include "Graphics/Vulkan/VulkanBuffer.h"
+#include "Graphics/Vulkan/VulkanDevice.h"
 
 namespace Hyperion
 {

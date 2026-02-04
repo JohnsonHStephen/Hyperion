@@ -5,7 +5,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-#include "Gui/Window.h"
+#include "Graphics/Gui/Window.h"
 
 namespace Hyperion
 {

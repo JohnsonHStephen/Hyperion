@@ -1,4 +1,4 @@
-#include "Renderer/Pipelines/MeshPipeline.h"
+#include "Graphics/Pipelines/MeshPipeline.h"
 
 #include "Core/Application.h"
 
@@ -60,8 +60,8 @@ namespace Hyperion
 
 		m_pipeline.init(
 			m_device,
-			"../../../../Hyperion/include/Renderer/shaders/vert.spv",
-			"../../../../Hyperion/include/Renderer/shaders/frag.spv",
+			"../../../../Hyperion/include/Graphics/shaders/vert.spv",
+			"../../../../Hyperion/include/Graphics/shaders/frag.spv",
 			pipelineConfig,
 			layout);
 	}

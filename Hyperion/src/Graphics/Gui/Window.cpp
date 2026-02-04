@@ -1,7 +1,7 @@
-#include "Gui/Window.h"
+#include "Graphics/Gui/Window.h"
 
 #ifdef PLATFORM_WINDOWS
-#include "GUI/WindowsWindow.h"
+#include "Graphics/Gui/WindowsWindow.h"
 #endif
 
 namespace Hyperion

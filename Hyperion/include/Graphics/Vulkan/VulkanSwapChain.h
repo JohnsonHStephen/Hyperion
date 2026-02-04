@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/VulkanDevice.h"
+#include "Graphics/Vulkan/VulkanDevice.h"
 
 namespace Hyperion
 {

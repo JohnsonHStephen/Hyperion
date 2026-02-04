@@ -1,4 +1,4 @@
-#include "Renderer/VulkanBuffer.h"
+#include "Graphics/Vulkan/VulkanBuffer.h"
 
 namespace Hyperion
 {

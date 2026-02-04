@@ -4,8 +4,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include "Renderer/VulkanBuffer.h"
-#include "Renderer/VulkanPipeline.h"
+#include "Graphics/Vulkan/VulkanBuffer.h"
+#include "Graphics/Vulkan/VulkanPipeline.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
