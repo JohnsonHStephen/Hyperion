@@ -133,21 +133,6 @@ namespace Hyperion
 		return buffer;
 	}
 
-	void VulkanPipeline::createGraphicsPipelineLayout(VulkanDevice* device, VkPipelineLayout& pipelineLayout)
-	{
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
-
-		if (vkCreatePipelineLayout(device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
-	}
-
 	void VulkanPipeline::createGraphicsPipeline(
 		const std::string& vertFilepath,
 		const std::string& fragFilepath,

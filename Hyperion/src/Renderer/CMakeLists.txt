@@ -8,3 +8,5 @@ target_sources (Hyperion
 		"VulkanSwapChain.cpp"
 		"VulkanRenderer.cpp"
 )
+
+add_subdirectory ("Pipelines")

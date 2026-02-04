@@ -1,9 +1,13 @@
 #pragma once
 
 #include "Core/HyperionPCH.h"
+
 #include "Events/WindowEvent.h"
+
 #include "GUI/ImGuiLayer.h"
 #include "GUI/Window.h"
+
+#include "Renderer/Pipelines/MeshPipeline.h"
 #include "Renderer/VulkanDevice.h"
 #include "Renderer/VulkanRenderer.h"
 
@@ -53,6 +57,7 @@ namespace Hyperion
 		VulkanDevice m_device{};
 		VulkanRenderer m_renderer{};
 		std::vector<Layer*> m_layers{};
+		MeshPipeline m_meshPipeline{};
 
 		ApplicationInfo m_appInfo;
 

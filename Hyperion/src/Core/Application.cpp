@@ -26,30 +26,14 @@ namespace Hyperion
 			{ ShaderDataType::e_Float3, "inColour" },
 			});
 
-		VkPipelineLayout pipelineLayout{};
-		VulkanPipeline::createGraphicsPipelineLayout(&m_device, pipelineLayout);
-
-		PipelineConfigInfo pipelineConfig{};
-		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, m_window->getWidth(), m_window->getHeight());
-		pipelineConfig.renderPass = m_renderer.getSwapChainRenderPass();
-		pipelineConfig.pipelineLayout = pipelineLayout;
-
-		VulkanPipeline pipeline = VulkanPipeline();
-		pipeline.init(
-			&m_device,
-			"../../../../Hyperion/include/Renderer/shaders/vert.spv",
-			"../../../../Hyperion/include/Renderer/shaders/frag.spv",
-			pipelineConfig,
-			layout);
-
 		std::vector<vertex> vertices{
 			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
 			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
 
-		VulkanBuffer vertexBuffer{};
-		vertexBuffer.init(
+		std::vector<VulkanBuffer> vertexBuffers = std::vector<VulkanBuffer>(1);
+		vertexBuffers[0].init(
 			&m_device,
 			layout,
 			vertices.size(),
@@ -78,14 +62,9 @@ namespace Hyperion
 					layer->OnFrameEnd(0);
 				}
 
-				pipeline.bind(commandBuffer);
+				vertexBuffers[0].setData(vertices.data(), sizeof(vertices[0]) * vertices.size());
 
-				vertexBuffer.setData(vertices.data(), sizeof(vertices[0]) * vertices.size());
-
-				VkBuffer buffers[] = { vertexBuffer.getInternalBuffer() };
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-				vkCmdDraw(commandBuffer, vertexBuffer.getInstanceCount(), 1, 0, 0);
+				m_meshPipeline.draw(commandBuffer, vertexBuffers);
 
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
@@ -94,9 +73,7 @@ namespace Hyperion
 			m_window->pollEvents();
 		}
 
-		vertexBuffer.cleanup();
-		pipeline.cleanup();
-		vkDestroyPipelineLayout(m_device.device(), pipelineLayout, nullptr);
+		vertexBuffers[0].cleanup();
 	}
 
 	void Application::close()
@@ -143,6 +120,8 @@ namespace Hyperion
 
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
+		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass());
+
 		//m_OverlayLayer = new ImGuiLayer();
 		//PushLayer((Layer*)m_OverlayLayer);
 
@@ -151,6 +130,7 @@ namespace Hyperion
 
 	Application::~Application()
 	{
+		m_meshPipeline.cleanup();
 		m_renderer.cleanup();
 		m_device.cleanup();
 	}
