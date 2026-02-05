@@ -17,30 +17,47 @@ namespace Hyperion
 		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
-	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const std::vector<Mesh>& meshs)
+	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const std::vector<GameObject>& objects)
 	{
 		m_pipeline.bind(commandBuffer);
 
-		for (const auto& mesh : meshs)
+		for (const auto& object : objects)
 		{
-			VkBuffer buffers[] = { mesh.getVertexBuffer() };
+			PushConstants pushConstants{};
+			pushConstants.transform = object.transform.getTransform();
+			pushConstants.normal = object.transform.getNormal();
+
+			vkCmdPushConstants(
+				commandBuffer,
+				m_pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(PushConstants),
+				&pushConstants);
+
+			VkBuffer buffers[] = { object.mesh.getVertexBuffer() };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-			vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, object.mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexed(commandBuffer, mesh.getIndexCount(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, object.mesh.getIndexCount(), 1, 0, 0, 0);
 		}
 
 	}
 
 	void MeshPipeline::createGraphicsPipelineLayout()
 	{
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(PushConstants);
+
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+		pipelineLayoutInfo.setLayoutCount = 0;
+		pipelineLayoutInfo.pSetLayouts = nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		if (vkCreatePipelineLayout(m_device->device(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 		{

@@ -1,7 +1,6 @@
 #include "Core/Application.h"
 
-#include "Graphics/Vulkan/VulkanBuffer.h"
-#include "Graphics/Vulkan/VulkanPipeline.h"
+#include "Scene/GameObject.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
@@ -11,6 +10,10 @@ namespace Hyperion
 
 	void Application::run()
 	{
+		std::vector<GameObject> objects;
+		objects.emplace_back("Square", &m_device, glm::vec3{0.0f, 0.0f, 0.5f});
+		glm::vec3 rotation(0.0f, 0.0f, 0.0f);
+
 		std::vector<Mesh::Vertex> vertices{
 			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -18,8 +21,7 @@ namespace Hyperion
 			{{-0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
 
-		std::vector<Mesh> meshs;
-		meshs.emplace_back("Triangle", &m_device).loadCustomData(vertices, {0, 1, 2, 0, 2, 3});
+		objects[0].mesh.loadCustomData(vertices, {0, 1, 2, 0, 2, 3});
 
 		while (m_running)
 		{
@@ -43,7 +45,11 @@ namespace Hyperion
 					layer->OnFrameEnd(0);
 				}
 
-				m_meshPipeline.draw(commandBuffer, meshs);
+				rotation.z += 0.001f;
+				rotation.y += 0.001f;
+				rotation.x += 0.001f;
+				objects[0].transform.rotation = rotation;
+				m_meshPipeline.draw(commandBuffer, objects);
 
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
