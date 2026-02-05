@@ -1,5 +1,6 @@
 #include "Core/Application.h"
 
+#include "Scene/Camera.h"
 #include "Scene/GameObject.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
@@ -11,7 +12,7 @@ namespace Hyperion
 	void Application::run()
 	{
 		std::vector<GameObject> objects;
-		objects.emplace_back("Square", &m_device, glm::vec3{0.0f, 0.0f, 0.5f});
+		objects.emplace_back("Square", &m_device, glm::vec3{0.0f, 0.0f, 2.5f});
 		glm::vec3 rotation(0.0f, 0.0f, 0.0f);
 
 		std::vector<Mesh::Vertex> vertices{
@@ -22,6 +23,10 @@ namespace Hyperion
 		};
 
 		objects[0].mesh.loadCustomData(vertices, {0, 1, 2, 0, 2, 3});
+
+		Camera camera{};
+		camera.setProjectionType(Camera::ProjectionType::Perspective);
+		camera.setPerspective(glm::radians(45.0f), 0.01f, 1000.0f);
 
 		while (m_running)
 		{
@@ -49,7 +54,8 @@ namespace Hyperion
 				rotation.y += 0.001f;
 				rotation.x += 0.001f;
 				objects[0].transform.rotation = rotation;
-				m_meshPipeline.draw(commandBuffer, objects);
+				camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
+				m_meshPipeline.draw(commandBuffer, camera, objects);
 
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();

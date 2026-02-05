@@ -17,7 +17,7 @@ namespace Hyperion
 		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
-	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const std::vector<GameObject>& objects)
+	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const Camera& camera, const std::vector<GameObject>& objects)
 	{
 		m_pipeline.bind(commandBuffer);
 
@@ -26,6 +26,7 @@ namespace Hyperion
 			PushConstants pushConstants{};
 			pushConstants.transform = object.transform.getTransform();
 			pushConstants.normal = object.transform.getNormal();
+			pushConstants.projView = camera.getProjection() * camera.getView();
 
 			vkCmdPushConstants(
 				commandBuffer,

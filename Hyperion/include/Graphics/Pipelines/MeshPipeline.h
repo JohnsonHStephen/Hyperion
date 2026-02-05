@@ -10,7 +10,8 @@
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
-#include <Scene/GameObject.h>
+#include "Scene/Camera.h"
+#include "Scene/GameObject.h"
 
 namespace Hyperion
 {
@@ -20,13 +21,14 @@ namespace Hyperion
 		void init(VulkanDevice* device, VkRenderPass renderPass);
 		void cleanup();
 
-		void draw(VkCommandBuffer& commandBuffer, const std::vector<GameObject>& objects);
+		void draw(VkCommandBuffer& commandBuffer, const Camera& camera, const std::vector<GameObject>& objects);
 
 	private:
 		struct PushConstants
 		{
 			glm::mat4 transform;
 			glm::mat4 normal;
+			glm::mat4 projView;
 		};
 
 	private:

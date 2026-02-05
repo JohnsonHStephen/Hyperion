@@ -5,6 +5,7 @@ target_sources (Hyperion
 		FILE_SET api
 		TYPE HEADERS
 		FILES
+			"Camera.h"
 			"Components.h"
 			"GameObject.h"
 )
