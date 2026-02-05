@@ -74,7 +74,7 @@ namespace Hyperion
 		bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
-		attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Mesh::Vertex, position) });
+		attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, position) });
 		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, colour) });
 
 		PipelineConfigInfo pipelineConfig{};

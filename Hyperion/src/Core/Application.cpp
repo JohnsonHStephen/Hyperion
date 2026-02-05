@@ -16,13 +16,34 @@ namespace Hyperion
 		glm::vec3 rotation(0.0f, 0.0f, 0.0f);
 
 		std::vector<Mesh::Vertex> vertices{
-			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-			{{-0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}
+			{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+			{{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+			{{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+			{{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}},
+			{{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 0.0f}}
 		};
 
-		objects[0].mesh.loadCustomData(vertices, {0, 1, 2, 0, 2, 3});
+		objects[0].mesh.loadCustomData(vertices, {
+			0, 1, 2,	// front face
+			2, 1, 3,
+
+			1, 5, 3,	// right face
+			3, 5, 7,
+
+			5, 4, 7,	// back face
+			7, 4, 6,
+			
+			4, 0, 6,	// left face
+			6, 0, 2,
+			
+			4, 5, 0,	// top face
+			0, 5, 1,
+			
+			2, 3, 6,	// bottom face
+			6, 3, 7});
 
 		Camera camera{};
 		camera.setProjectionType(Camera::ProjectionType::Perspective);
@@ -51,8 +72,8 @@ namespace Hyperion
 				}
 
 				rotation.z += 0.001f;
-				rotation.y += 0.001f;
-				rotation.x += 0.001f;
+				rotation.y += 0.002f;
+				rotation.x += 0.0005f;
 				objects[0].transform.rotation = rotation;
 				camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
 				m_meshPipeline.draw(commandBuffer, camera, objects);
