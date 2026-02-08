@@ -8,8 +8,8 @@ target_sources (Hyperion
 		FILES
 			"Application.h"
 			"EngineInfo.h"
+			"FrameListener.h"
 			"Hyperion.h"
-			"Layer.h"
 			"Main.h"
 )
 

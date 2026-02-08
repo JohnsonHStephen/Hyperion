@@ -1,7 +1,7 @@
 ﻿# source code
 target_sources (Hyperion
 	PRIVATE
-		"ImGuiLayer.cpp"
+		"ImGuiOverlay.cpp"
 		"Window.cpp"
 		"WindowsWindow.cpp"
 )

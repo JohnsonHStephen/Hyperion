@@ -78,7 +78,9 @@ namespace Hyperion
 		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, colour) });
 
 		PipelineConfigInfo pipelineConfig{};
-		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, Application::get()->getWindow()->getWidth(), Application::get()->getWindow()->getHeight());
+		int width, height;
+		Application::get()->getWindow()->getFramebufferPixelSize(width, height);
+		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, width, height);
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = m_pipelineLayout;
 

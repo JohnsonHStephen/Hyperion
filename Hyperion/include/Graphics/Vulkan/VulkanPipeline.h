@@ -51,6 +51,7 @@ namespace Hyperion
 
 		void bind(VkCommandBuffer commandBuffer);
 
+		// Width and Height must be in pixels
 		static void defaultPipelineConfigInfo(
 			PipelineConfigInfo& configInfo, uint32_t width, uint32_t height);
 

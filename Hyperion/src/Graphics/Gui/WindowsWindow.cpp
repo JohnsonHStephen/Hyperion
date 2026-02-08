@@ -55,7 +55,7 @@ namespace Hyperion
 		setVSync(props.VSync);
 
 		// Set GLFW callbacks
-		glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
+		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 				data.Width = width;

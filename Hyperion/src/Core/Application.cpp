@@ -54,21 +54,9 @@ namespace Hyperion
 			if (auto commandBuffer = m_renderer.beginFrame())
 			{
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-				for (auto layer : m_layers)
+				for (auto frameListener : m_frameListeners)
 				{
-					layer->OnFrameStart(0);
-				}
-
-				//m_OverlayLayer->Begin();
-				for (auto layer : m_layers)
-				{
-					layer->OnOverlay();
-				}
-				//m_OverlayLayer->End();
-
-				for (auto layer : m_layers)
-				{
-					layer->OnFrameEnd(0);
+					frameListener->onFrameStart(0);
 				}
 
 				rotation.z += 0.001f;
@@ -77,6 +65,18 @@ namespace Hyperion
 				objects[0].transform.rotation = rotation;
 				camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
 				m_meshPipeline.draw(commandBuffer, camera, objects);
+
+				m_overlay.begin();
+				for (auto frameListener : m_frameListeners)
+				{
+					frameListener->onOverlay();
+				}
+				m_overlay.end();
+
+				for (auto frameListener : m_frameListeners)
+				{
+					frameListener->onFrameEnd(0);
+				}
 
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
@@ -88,19 +88,19 @@ namespace Hyperion
 
 	void Application::close()
 	{
-		for (Layer* layer : m_layers)
+		for (auto frameListener : m_frameListeners)
 		{
-			layer->OnDetach();
-			delete layer;
+			frameListener->onDetach();
+			delete frameListener;
 		}
 
 		m_running = false;
 	}
 
-	void Application::pushLayer(Layer* layer)
+	void Application::pushListener(FrameListener* frameListener)
 	{
-		m_layers.emplace_back(layer);
-		layer->OnAttach();
+		m_frameListeners.emplace_back(frameListener);
+		frameListener->onAttach();
 	}
 
 	void Application::onEvent(Event& e)
@@ -132,8 +132,20 @@ namespace Hyperion
 
 		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass());
 
-		//m_OverlayLayer = new ImGuiLayer();
-		//PushLayer((Layer*)m_OverlayLayer);
+		ImGuiOverlay::InitInfo initInfo{};
+		initInfo.Window = m_window.get();
+		initInfo.Instance = m_device.getInstance();
+		initInfo.PhysicalDevice = m_device.physicalDevice();
+		initInfo.Device = m_device.device();
+		initInfo.QueueFamily = m_device.graphicsQueueFamily();
+		initInfo.Queue = m_device.graphicsQueue();
+		initInfo.PipelineCache = VK_NULL_HANDLE;
+		initInfo.DescriptorPool = m_device.descriptorPool();
+		initInfo.ImageCount = m_renderer.getImageCount();
+		initInfo.Allocator = m_device.allocator();
+		initInfo.RenderPass = m_renderer.getSwapChainRenderPass();
+
+		m_overlay.init(initInfo);
 
 		m_running = true;
 	}

@@ -1,17 +1,23 @@
-#include "Graphics/Gui/ImGuiLayer.h"
+#include "Graphics/Gui/ImGuiOverlay.h"
 
 #include "Core/Application.h"
 
 #include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_vulkan.h"
 
 namespace Hyperion
 {
-	Hyperion::ImGuiLayer::ImGuiLayer() {}
-	ImGuiLayer::~ImGuiLayer() {}
+	static void check_vk_result(VkResult err)
+	{
+		if (err == VK_SUCCESS)
+			return;
+		throw std::runtime_error("[vulkan] Error: VkResult = " + err);
+	}
 
-	void ImGuiLayer::OnAttach() {
+	void ImGuiOverlay::init(InitInfo initInfo)
+	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -23,54 +29,62 @@ namespace Hyperion
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
-		//ImGui::StyleColorsLight();
+
 
 		// Setup Platform/Renderer backends
-		//ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Application::get()->getWindow()->getNativeWindow(), true);
-		/*ImGui_ImplVulkan_InitInfo init_info = {};
-		ImGui_ImplVulkan_Init(&init_info);
-
-		m_WindowData.Surface = Application::Get()->GetVulkanContext()->GetSurface();
-		const VkFormat requestSurfaceImageFormat[] = { Application::Get()->GetVulkanContext()->GetImageFormat() };
-		const VkPhysicalDevice physicalDevice = Application::Get()->GetVulkanContext()->GetPhysicalDevice();
-		m_WindowData.SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(physicalDevice, m_WindowData.Surface, requestSurfaceImageFormat, 1, VK_COLORSPACE_SRGB_NONLINEAR_KHR);
-
-
-		m_WindowData.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(physicalDevice, m_WindowData.Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));*/
+		ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)initInfo.Window->getNativeWindow(), true);
+		ImGui_ImplVulkan_InitInfo vulkanInitInfo = {};
+		vulkanInitInfo.Instance = initInfo.Instance;
+		vulkanInitInfo.PhysicalDevice = initInfo.PhysicalDevice;
+		vulkanInitInfo.Device = initInfo.Device;
+		vulkanInitInfo.QueueFamily = initInfo.QueueFamily;
+		vulkanInitInfo.Queue = initInfo.Queue;
+		vulkanInitInfo.PipelineCache = initInfo.PipelineCache;
+		vulkanInitInfo.DescriptorPool = initInfo.DescriptorPool;
+		vulkanInitInfo.MinImageCount = 2;
+		vulkanInitInfo.ImageCount = initInfo.ImageCount;
+		vulkanInitInfo.Allocator = initInfo.Allocator;
+		vulkanInitInfo.RenderPass = initInfo.RenderPass;
+		vulkanInitInfo.Subpass = 0;
+		vulkanInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		vulkanInitInfo.CheckVkResultFn = check_vk_result;
+		ImGui_ImplVulkan_Init(&vulkanInitInfo);
 	}
 
-	void ImGuiLayer::OnDetach() {
-		//ImGui_ImplVulkan_Shutdown();
-		//ImGui_ImplGlfw_Shutdown();
+	void ImGuiOverlay::cleanup()
+	{
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void ImGuiLayer::Begin() {
-		//ImGui_ImplVulkan_NewFrame();
-		//ImGui_ImplGlfw_NewFrame();
-		
+	void ImGuiOverlay::begin()
+	{
 		// Manually set display size (since we can't use ImGui_ImplGlfw_InitForVulkan)
 		ImGuiIO& io = ImGui::GetIO();
 		Window* window = Application::get()->getWindow();
 		GLFWwindow* glfwWindow = (GLFWwindow*)window->getNativeWindow();
-		
+
 		int w = window->getWidth(), h = window->getHeight();
 		int display_w, display_h;
 		window->getFramebufferPixelSize(display_w, display_h);
 		io.DisplaySize = ImVec2((float)w, (float)h);
 		if (w > 0 && h > 0)
 			io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
-		
-		// Set delta time (simple implementation - you may want to use a proper timer)
+
+		// Set delta time (TODO: use a proper timer)
 		static double lastTime = 0.0;
 		double currentTime = glfwGetTime();
 		io.DeltaTime = lastTime > 0.0 ? (float)(currentTime - lastTime) : (float)(1.0f / 60.0f);
 		lastTime = currentTime;
-		
+
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
-	void ImGuiLayer::End() {
+	void ImGuiOverlay::end()
+	{
 		// Rendering
 		ImGui::Render();
 

@@ -154,8 +154,8 @@ namespace Hyperion
 	{
 		vkDeviceWaitIdle(m_device->device());
 
-		auto width = Application::get()->getWindow()->getWidth();
-		auto height = Application::get()->getWindow()->getHeight();
+		int width, height;
+		Application::get()->getWindow()->getFramebufferPixelSize(width, height);
 
 		VkExtent2D extent(width, height);
 		if (m_swapChain == nullptr)

@@ -64,22 +64,24 @@ namespace Hyperion
 		createSurface();
 		pickPhysicalDevice();
 		createLogicalDevice();
+		createDescriptorPool();
 		createCommandPool();
 	}
 
 	void VulkanDevice::cleanup()
 	{
-		vkDestroyCommandPool(m_device_, m_commandPool, nullptr);
-		vkDestroyDevice(m_device_, nullptr);
+		vkDestroyCommandPool(m_device_, m_commandPool, m_allocator);
+		vkDestroyDescriptorPool(m_device_, m_descriptorPool, m_allocator);
+		vkDestroyDevice(m_device_, m_allocator);
 
 		if (enableValidationLayers)
 		{
-			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, m_allocator);
 		}
 
-		vkDestroySurfaceKHR(m_instance, m_surface_, nullptr);
+		vkDestroySurfaceKHR(m_instance, m_surface_, m_allocator);
 		if (m_instance != VK_NULL_HANDLE)
-			vkDestroyInstance(m_instance, nullptr);
+			vkDestroyInstance(m_instance, m_allocator);
 	}
 
 	void VulkanDevice::createInstance()
@@ -145,7 +147,7 @@ namespace Hyperion
 		if (!enableValidationLayers) return;
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
 		populateDebugMessengerCreateInfo(createInfo);
-		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, m_allocator, &m_debugMessenger) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to set up debug messenger!");
 		}
@@ -160,7 +162,7 @@ namespace Hyperion
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hinstance = (HINSTANCE)info.instance;
 		createInfo.hwnd = (HWND)info.handle;
-		if (vkCreateWin32SurfaceKHR(m_instance, &createInfo, nullptr, &m_surface_) != VK_SUCCESS)
+		if (vkCreateWin32SurfaceKHR(m_instance, &createInfo, m_allocator, &m_surface_) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create Win32 window surface!");
 		}
@@ -226,7 +228,7 @@ namespace Hyperion
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
-		if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device_) != VK_SUCCESS)
+		if (vkCreateDevice(m_physicalDevice, &createInfo, m_allocator, &m_device_) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create logical device!");
 		}
@@ -246,10 +248,25 @@ namespace Hyperion
 		poolInfo.flags =
 			VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-		if (vkCreateCommandPool(m_device_, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+		if (vkCreateCommandPool(m_device_, &poolInfo, m_allocator, &m_commandPool) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create command pool!");
 		}
+	}
+
+	void VulkanDevice::createDescriptorPool()
+	{
+		VkDescriptorPoolSize pool_sizes[] =
+		{
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 },
+		};
+		VkDescriptorPoolCreateInfo pool_info = {};
+		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool_info.maxSets = 1;
+		pool_info.poolSizeCount = (uint32_t)((int)(sizeof(pool_sizes) / sizeof(*(pool_sizes))));
+		pool_info.pPoolSizes = pool_sizes;
+		vkCreateDescriptorPool(m_device_, &pool_info, m_allocator, &m_descriptorPool);
 	}
 
 	std::vector<VkPhysicalDevice> VulkanDevice::getPhysicalDevices()
@@ -641,7 +658,7 @@ namespace Hyperion
 		VkImage& image,
 		VkDeviceMemory& imageMemory)
 	{
-		if (vkCreateImage(m_device_, &imageInfo, nullptr, &image) != VK_SUCCESS)
+		if (vkCreateImage(m_device_, &imageInfo, m_allocator, &image) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create image!");
 		}
@@ -654,7 +671,7 @@ namespace Hyperion
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(m_device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+		if (vkAllocateMemory(m_device_, &allocInfo, m_allocator, &imageMemory) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to allocate image memory!");
 		}

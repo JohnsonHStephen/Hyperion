@@ -19,6 +19,7 @@ namespace Hyperion
 		ProjectionType getProjectionType() const { return m_projectionType; }
 		void setProjectionType(ProjectionType projectionType);
 
+		// width and height can be either pixels or screen coords (only used for aspect ratio)
 		void setViewportSize(uint32_t width, uint32_t height);
 		void setPerspective(float fovy, float nearClip, float farClip);
 		void setOrthographic(float size, float nearClip, float farClip);

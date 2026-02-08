@@ -4,7 +4,7 @@
 target_sources (Hyperion
 	PRIVATE
 		imgui_impl_glfw.cpp
-		imgui_impl_opengl3.cpp
+		imgui_impl_vulkan.cpp
 )
 
 # private headers
@@ -14,6 +14,5 @@ target_sources (Hyperion
 		TYPE HEADERS
 		FILES
 			imgui_impl_glfw.h
-			imgui_impl_opengl3.h
-			imgui_impl_opengl3_loader.h
+			imgui_impl_vulkan.h
 )

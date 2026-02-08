@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Core/HyperionPCH.h"
+#include "Core/FrameListener.h"
 
 #include "Events/WindowEvent.h"
 
-#include "Graphics/Gui/ImGuiLayer.h"
+#include "Graphics/Gui/ImGuiOverlay.h"
 #include "Graphics/Gui/Window.h"
+
 #include "Graphics/Pipelines/MeshPipeline.h"
+
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanRenderer.h"
 
@@ -33,7 +36,7 @@ namespace Hyperion
 		void run();
 		void close();
 
-		void pushLayer(Layer* layer);
+		void pushListener(FrameListener* frameListener);
 
 		void onEvent(Event& e);
 
@@ -55,7 +58,10 @@ namespace Hyperion
 		std::unique_ptr<Window> m_window = nullptr;
 		VulkanDevice m_device{};
 		VulkanRenderer m_renderer{};
-		std::vector<Layer*> m_layers{};
+
+		ImGuiOverlay m_overlay{};
+		std::vector<FrameListener*> m_frameListeners{};
+
 		MeshPipeline m_meshPipeline{};
 
 		ApplicationInfo m_appInfo;

@@ -42,11 +42,16 @@ namespace Hyperion
 		void init();
 		void cleanup();
 
+		VkInstance getInstance() const { return m_instance; }
 		VkCommandPool getCommandPool() const { return m_commandPool; }
+		VkDescriptorPool descriptorPool() const { return m_descriptorPool; }
 		VkDevice device() const { return m_device_; }
+		VkPhysicalDevice physicalDevice() const { return m_physicalDevice; }
 		VkSurfaceKHR surface() const { return m_surface_; }
+		uint32_t graphicsQueueFamily() const { return m_graphicsQueueFamilyIndex; }
 		VkQueue graphicsQueue() const { return m_graphicsQueue_; }
 		VkQueue presentQueue() const { return m_presentQueue_; }
+		VkAllocationCallbacks* allocator() const { return m_allocator; }
 
 		SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(m_physicalDevice); }
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -81,6 +86,7 @@ namespace Hyperion
 		void pickPhysicalDevice();
 		void createLogicalDevice();
 		void createCommandPool();
+		void createDescriptorPool();
 
 		std::vector<VkPhysicalDevice> getPhysicalDevices();
 		int rateDeviceSuitability(VkPhysicalDevice device);
@@ -97,13 +103,15 @@ namespace Hyperion
 		VkInstance m_instance;
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-		VkCommandPool m_commandPool;
+		VkCommandPool m_commandPool = VK_NULL_HANDLE;
+		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
 		VkDevice m_device_;
 		VkSurfaceKHR m_surface_;
 		VkQueue m_graphicsQueue_;
 		VkQueue m_presentQueue_;
 		uint32_t m_graphicsQueueFamilyIndex = (uint32_t)-1;
+		VkAllocationCallbacks* m_allocator = nullptr;
 
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 		const std::vector<const char*> m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };

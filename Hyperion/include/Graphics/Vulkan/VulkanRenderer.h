@@ -37,6 +37,8 @@ namespace Hyperion
 			return m_swapChain->frameIndex();
 		}
 
+		uint32_t getImageCount() const { return m_swapChain->imageCount(); }
+
 		VkCommandBuffer beginFrame();
 		void endFrame();
 		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);

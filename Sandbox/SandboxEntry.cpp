@@ -2,30 +2,27 @@
 #include "Core/HyperionPCH.h"
 #include "Core/Main.h"
 
-#include "SandboxLayer.h"
+#include "SandboxListener.h"
 
-namespace Hyperion
-{
-	class SandboxApp: public Application {
-	public:
-		SandboxApp(ApplicationInfo appInfo): Application(appInfo) {
-			pushLayer(new SandboxLayer());
-		}
-
-		~SandboxApp() {
-
-		}
-
-	};
-
-	Application* createApplication() {
-		ApplicationInfo appInfo{};
-		appInfo.appName = "Test Name";
-		appInfo.appVersionVariant = 0;
-		appInfo.appVersionMajor = 0;
-		appInfo.appVersionMinor = 1;
-		appInfo.appVersionPatch = 0;
-
-		return new SandboxApp(appInfo);
+class SandboxApp: public Hyperion::Application {
+public:
+	SandboxApp(ApplicationInfo appInfo): Application(appInfo) {
+		pushListener(new SandboxListener());
 	}
+
+	~SandboxApp() {
+
+	}
+
+};
+
+Hyperion::Application* Hyperion::createApplication() {
+	ApplicationInfo appInfo{};
+	appInfo.appName = "Test Name";
+	appInfo.appVersionVariant = 0;
+	appInfo.appVersionMajor = 0;
+	appInfo.appVersionMinor = 1;
+	appInfo.appVersionPatch = 0;
+
+	return new SandboxApp(appInfo);
 }
