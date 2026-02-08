@@ -2,7 +2,7 @@
 
 #include "Graphics/Mesh.h"
 
-#include "Scene/Components.h"
+#include "World/Components.h"
 
 namespace Hyperion
 {

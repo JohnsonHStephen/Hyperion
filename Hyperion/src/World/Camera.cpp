@@ -1,4 +1,4 @@
-#include "Scene/Camera.h"
+#include "World/Camera.h"
 
 namespace Hyperion
 {

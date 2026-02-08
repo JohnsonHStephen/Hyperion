@@ -1,4 +1,4 @@
-#include "Scene/GameObject.h"
+#include "World/GameObject.h"
 
 namespace Hyperion
 {

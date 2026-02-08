@@ -3,9 +3,38 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <stduuid/uuid.h>
+
+#include "Core/HyperionPCH.h"
 
 namespace Hyperion
 {
+	struct IDComponent
+	{
+		uuids::uuid ID;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+		IDComponent(const uuids::uuid& uuid)
+			: ID(uuid)
+		{}
+	};
+
+	struct TagComponent
+	{
+		std::string Tag;
+
+		TagComponent() = default;
+		TagComponent(const TagComponent&) = default;
+		TagComponent(const std::string& tag)
+			: Tag(tag)
+		{}
+
+		// Can use as a string
+		operator std::string& () { return Tag; }
+		operator const std::string& () const { return Tag; }
+	};
+
 	struct TransformComponent
 	{
 		glm::vec3 translation{ 0.0f };

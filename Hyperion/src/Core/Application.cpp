@@ -1,7 +1,7 @@
 #include "Core/Application.h"
 
-#include "Scene/Camera.h"
-#include "Scene/GameObject.h"
+#include "World/Camera.h"
+#include "World/GameObject.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 

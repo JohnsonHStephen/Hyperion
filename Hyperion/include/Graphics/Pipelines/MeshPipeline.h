@@ -10,8 +10,8 @@
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
-#include "Scene/Camera.h"
-#include "Scene/GameObject.h"
+#include "World/Camera.h"
+#include "World/GameObject.h"
 
 namespace Hyperion
 {

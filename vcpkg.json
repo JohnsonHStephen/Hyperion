@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "entt",
     "glfw3",
     "glm",
     {
@@ -8,6 +9,7 @@
         "docking-experimental"
       ]
     },
+    "stduuid",
     "vulkan"
   ]
 }

@@ -2,9 +2,11 @@
 # project specific logic here.
 #
 
+find_package(EnTT CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+find_package(stduuid CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 
 # Define a custom command to run the batch file
@@ -32,9 +34,11 @@ add_subdirectory ("external")
 
 set_property(TARGET Hyperion PROPERTY CXX_STANDARD 20)
 
+target_link_libraries(Hyperion PRIVATE EnTT::EnTT)
 target_link_libraries(Hyperion PRIVATE glfw)
 target_link_libraries(Hyperion PRIVATE glm::glm)
 target_link_libraries(Hyperion PRIVATE imgui::imgui)
+target_link_libraries(Hyperion PRIVATE stduuid)
 target_link_libraries(Hyperion PRIVATE Vulkan::Vulkan)
 
 # TODO: Add tests and install targets if needed.

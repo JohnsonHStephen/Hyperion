@@ -10,4 +10,4 @@ target_sources (Hyperion
 add_subdirectory ("Core")
 add_subdirectory ("Events")
 add_subdirectory ("Graphics")
-add_subdirectory ("Scene")
+add_subdirectory ("World")

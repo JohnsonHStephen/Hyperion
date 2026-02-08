@@ -8,4 +8,5 @@ target_sources (Hyperion
 			"Camera.h"
 			"Components.h"
 			"GameObject.h"
+			"World.h"
 )
