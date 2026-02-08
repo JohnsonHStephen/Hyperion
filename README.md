@@ -11,20 +11,17 @@ Hyperion is a **learning-first game engine** being built to:
 - Practice modern C++ patterns and CMake project structuring.
 - Experiment with "build-your-own" implementations before relying on libraries.
 
-
-## 🚧 **Current Status**
-**Day 2**: Just getting started!
-- Initial Application framework creation
-- Initial layer management
-
 ---
 
 ## 📥 **Setup (For Future Use)**
 *Requirements will evolve as the engine grows.*
 # Install VCPKG and setup ENV VCPKG_ROOT or install the following dependencies
+- entt
 - glfw3
 - glad
 - imgui (docking branch)
+- stduuid
+- vulkan
 
 # Clone the repository
 ```bash
@@ -36,6 +33,8 @@ Open the project in VS use the CMake tools to configure then build the project.
 Will support non VS in the future.
 
 ## 📚 **Learning Resources**
+- ["Vulkan Tutorial"](https://vulkan-tutorial.com/)
 
 # *Inspiration and references:*
 - ["Game Engine Architecture" by Jason Gregory](https://www.gameenginebook.com/)
+- ["How I learned Vulkan and wrote a small game engine with it"](https://edw.is/learning-vulkan/)
