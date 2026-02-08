@@ -29,6 +29,6 @@ namespace Hyperion
 		void cleanup();
 
 		void begin();
-		void end();
+		void end(VkCommandBuffer commandBuffer);
 	};
 }

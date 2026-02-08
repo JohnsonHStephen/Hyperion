@@ -83,12 +83,12 @@ namespace Hyperion
 		ImGui::NewFrame();
 	}
 
-	void ImGuiOverlay::end()
+	void ImGuiOverlay::end(VkCommandBuffer commandBuffer)
 	{
 		// Rendering
 		ImGui::Render();
 
-		//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
 		// Update and Render additional Platform Windows
 		ImGui::UpdatePlatformWindows();

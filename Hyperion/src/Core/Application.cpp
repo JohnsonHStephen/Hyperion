@@ -71,7 +71,7 @@ namespace Hyperion
 				{
 					frameListener->onOverlay();
 				}
-				m_overlay.end();
+				m_overlay.end(commandBuffer);
 
 				for (auto frameListener : m_frameListeners)
 				{
