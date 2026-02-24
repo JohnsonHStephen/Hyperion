@@ -60,18 +60,7 @@ namespace Hyperion
 
 	void ImGuiOverlay::begin()
 	{
-		// Manually set display size (since we can't use ImGui_ImplGlfw_InitForVulkan)
 		ImGuiIO& io = ImGui::GetIO();
-		Window* window = Application::get()->getWindow();
-		GLFWwindow* glfwWindow = (GLFWwindow*)window->getNativeWindow();
-
-		int w = window->getWidth(), h = window->getHeight();
-		int display_w, display_h;
-		window->getFramebufferPixelSize(display_w, display_h);
-		io.DisplaySize = ImVec2((float)w, (float)h);
-		if (w > 0 && h > 0)
-			io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
-
 		// Set delta time (TODO: use a proper timer)
 		static double lastTime = 0.0;
 		double currentTime = glfwGetTime();

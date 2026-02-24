@@ -5,16 +5,22 @@
 
 namespace Hyperion
 {
+	struct WindowSize
+	{
+		int width;
+		int height;
+	};
+
 	struct WindowProps
 	{
 		std::string Name;
-		unsigned int Width, Height;
+		WindowSize WindowSize;
 		bool VSync;
 
 		WindowProps(const std::string& name = "Hyperion",
 			int width = 640, int height = 480,
 			bool vsync = false)
-			: Name(name), Width(width), Height(height), VSync(vsync)
+			: Name(name), WindowSize(width, height), VSync(vsync)
 		{}
 	};
 
@@ -48,6 +54,6 @@ namespace Hyperion
 		// Fill out platform-native window info without introducing platform headers here
 		virtual NativeWindowInfo getNativeWindowInfo() const = 0;
 
-		virtual void getFramebufferPixelSize(int& width, int& height) const = 0;
+		virtual WindowSize getFramebufferPixelSize() const = 0;
 	};
 }

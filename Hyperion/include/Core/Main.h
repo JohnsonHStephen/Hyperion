@@ -2,14 +2,16 @@
 //
 
 #include "Application.h"
-#include "Hyperion.h"
+#include "Game.h"
 
-extern Hyperion::Application* Hyperion::createApplication();
+extern std::unique_ptr<Hyperion::Game> createGame();
 
 int main() {
-	Hyperion::Application* app = Hyperion::createApplication();
+	std::unique_ptr<Hyperion::Game> game = createGame();
 
-	app->run();
+	Hyperion::Application app = Hyperion::Application(game->getAppInfo());
+
+	app.run(game.get());
 
 	exit(EXIT_SUCCESS);
 }

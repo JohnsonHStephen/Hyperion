@@ -57,11 +57,11 @@ namespace Hyperion
 		}
 	}
 
-	void VulkanDevice::init()
+	void VulkanDevice::init(const ApplicationInfo& appInfo, Window* window)
 	{
-		createInstance();
+		createInstance(appInfo);
 		setupDebugMessenger();
-		createSurface();
+		createSurface(window);
 		pickPhysicalDevice();
 		createLogicalDevice();
 		createDescriptorPool();
@@ -84,7 +84,7 @@ namespace Hyperion
 			vkDestroyInstance(m_instance, m_allocator);
 	}
 
-	void VulkanDevice::createInstance()
+	void VulkanDevice::createInstance(const ApplicationInfo& appInfo)
 	{
 		if (enableValidationLayers && !checkValidationLayerSupport())
 		{
@@ -93,8 +93,6 @@ namespace Hyperion
 
 		VkApplicationInfo vkAppInfo = {};
 		vkAppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		const Application* app = Application::get();
-		const ApplicationInfo& appInfo = app->getAppInfo();
 		vkAppInfo.pApplicationName = appInfo.appName.c_str();
 		vkAppInfo.applicationVersion = VK_MAKE_API_VERSION(
 			appInfo.appVersionVariant,
@@ -153,9 +151,8 @@ namespace Hyperion
 		}
 	}
 
-	void VulkanDevice::createSurface()
+	void VulkanDevice::createSurface(Window* window)
 	{
-		Window* window = Application::get()->getWindow();
 #ifdef PLATFORM_WINDOWS
 		Window::NativeWindowInfo info = window->getNativeWindowInfo();
 		VkWin32SurfaceCreateInfoKHR createInfo{};

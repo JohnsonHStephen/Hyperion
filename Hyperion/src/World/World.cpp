@@ -5,8 +5,7 @@
 
 namespace Hyperion
 {
-	World::World(uint32_t width, uint32_t height):
-		m_viewportWidth(width), m_viewportHeight(height)
+	World::World()
 	{
 		entt::entity entity = m_registry.create();
 		m_registry.emplace<TransformComponent>(entity);

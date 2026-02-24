@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Core/HyperionPCH.h"
-#include "Core/FrameListener.h"
+#include "Core/Game.h"
 
+#include "Events/Event.h"
 #include "Events/WindowEvent.h"
 
 #include "Graphics/Gui/ImGuiOverlay.h"
@@ -13,61 +14,39 @@
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanRenderer.h"
 
-struct ApplicationInfo
-{
-	unsigned short appVersionVariant;
-	unsigned short appVersionMajor;
-	unsigned short appVersionMinor;
-	unsigned short appVersionPatch;
-
-	std::string appName;
-};
-
 namespace Hyperion
 {
 	class Application
 	{
 	public:
-		Application(ApplicationInfo appInfo);
-		virtual ~Application();
+		Application(const ApplicationInfo& appInfo);
+		~Application();
 
-		inline static Application* get() { return s_instance; }
-
-		void run();
+		void run(Game* game);
 		void close();
-
-		void pushListener(FrameListener* frameListener);
 
 		void onEvent(Event& e);
 
 		inline const Window* getWindow() const { return m_window.get(); }
 		inline Window* getWindow() { return m_window.get(); }
 
-		inline const ApplicationInfo& getAppInfo() const { return m_appInfo; }
-		inline ApplicationInfo& getAppInfo() { return m_appInfo; }
-
 		inline const VulkanDevice* getVulkanDevice() const { return &m_device; }
 		inline VulkanDevice* getVulkanDevice() { return &m_device; }
 
-		inline bool isMinimized() { return m_window->isMinimized(); }
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 
 	private:
-		static Application* s_instance;
 		std::unique_ptr<Window> m_window = nullptr;
 		VulkanDevice m_device{};
 		VulkanRenderer m_renderer{};
 
+		Game* m_game = nullptr;
+
 		ImGuiOverlay m_overlay{};
-		std::vector<FrameListener*> m_frameListeners{};
 
 		MeshPipeline m_meshPipeline{};
 
-		ApplicationInfo m_appInfo;
-
 		bool m_running = false;
 	};
-
-	Application* createApplication();
 } // namespace Hyperion

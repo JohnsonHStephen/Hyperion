@@ -7,10 +7,48 @@
 
 namespace Hyperion
 {
-	Application* Application::s_instance = nullptr;
-
-	void Application::run()
+	Application::Application(const ApplicationInfo& appInfo)
+		: m_device(), m_renderer()
 	{
+		m_window = Window::create();
+
+		m_device.init(appInfo, m_window.get());
+		m_renderer.init(&m_device, m_window->getFramebufferPixelSize());
+
+		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
+
+		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass(), m_window->getFramebufferPixelSize());
+
+		ImGuiOverlay::InitInfo initInfo{};
+		initInfo.Window = m_window.get();
+		initInfo.Instance = m_device.getInstance();
+		initInfo.PhysicalDevice = m_device.physicalDevice();
+		initInfo.Device = m_device.device();
+		initInfo.QueueFamily = m_device.graphicsQueueFamily();
+		initInfo.Queue = m_device.graphicsQueue();
+		initInfo.PipelineCache = VK_NULL_HANDLE;
+		initInfo.DescriptorPool = m_device.descriptorPool();
+		initInfo.ImageCount = m_renderer.getImageCount();
+		initInfo.Allocator = m_device.allocator();
+		initInfo.RenderPass = m_renderer.getSwapChainRenderPass();
+
+		m_overlay.init(initInfo);
+
+		m_running = true;
+	}
+
+	Application::~Application()
+	{
+		m_meshPipeline.cleanup();
+		m_renderer.cleanup();
+		m_device.cleanup();
+	}
+
+	void Application::run(Game* game)
+	{
+		m_game = game;
+		m_game->init();
+
 		std::vector<GameObject> objects;
 		objects.emplace_back("Square", &m_device, glm::vec3{0.0f, 0.0f, 2.5f});
 		glm::vec3 rotation(0.0f, 0.0f, 0.0f);
@@ -51,13 +89,12 @@ namespace Hyperion
 
 		while (m_running)
 		{
-			if (auto commandBuffer = m_renderer.beginFrame())
+			m_game->onUpdate(1);
+
+			if (auto commandBuffer = m_renderer.beginFrame(m_window.get()))
 			{
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-				for (auto frameListener : m_frameListeners)
-				{
-					frameListener->onFrameStart(0);
-				}
+				m_game->onRender();
 
 				rotation.z += 0.001f;
 				rotation.y += 0.002f;
@@ -67,93 +104,35 @@ namespace Hyperion
 				m_meshPipeline.draw(commandBuffer, camera, objects);
 
 				m_overlay.begin();
-				for (auto frameListener : m_frameListeners)
-				{
-					frameListener->onOverlay();
-				}
+				m_game->onOverlay();
 				m_overlay.end(commandBuffer);
 
-				for (auto frameListener : m_frameListeners)
-				{
-					frameListener->onFrameEnd(0);
-				}
-
 				m_renderer.endSwapChainRenderPass(commandBuffer);
-				m_renderer.endFrame();
+				m_renderer.endFrame(m_window.get());
 			}
 
 			m_window->pollEvents();
 		}
+
+		m_game->cleanup();
 	}
 
 	void Application::close()
 	{
-		for (auto frameListener : m_frameListeners)
-		{
-			frameListener->onDetach();
-			delete frameListener;
-		}
-
 		m_running = false;
-	}
-
-	void Application::pushListener(FrameListener* frameListener)
-	{
-		m_frameListeners.emplace_back(frameListener);
-		frameListener->onAttach();
 	}
 
 	void Application::onEvent(Event& e)
 	{
 		if (e.GetEventType() == EventType::WindowClose)
 			e.SetHandled(onWindowClose(*(WindowCloseEvent*)&e));
+
+		m_game->onEvent(e);
 	}
 
 	bool Application::onWindowClose(WindowCloseEvent& e)
 	{
 		close();
 		return false;
-	}
-
-	Application::Application(ApplicationInfo appInfo)
-		: m_appInfo(appInfo), m_device(), m_renderer()
-	{
-		if (s_instance != nullptr)
-			throw std::runtime_error("Application already created!");
-
-		s_instance = this;
-
-		m_window = Window::create();
-
-		m_device.init();
-		m_renderer.init(&m_device);
-
-		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-
-		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass());
-
-		ImGuiOverlay::InitInfo initInfo{};
-		initInfo.Window = m_window.get();
-		initInfo.Instance = m_device.getInstance();
-		initInfo.PhysicalDevice = m_device.physicalDevice();
-		initInfo.Device = m_device.device();
-		initInfo.QueueFamily = m_device.graphicsQueueFamily();
-		initInfo.Queue = m_device.graphicsQueue();
-		initInfo.PipelineCache = VK_NULL_HANDLE;
-		initInfo.DescriptorPool = m_device.descriptorPool();
-		initInfo.ImageCount = m_renderer.getImageCount();
-		initInfo.Allocator = m_device.allocator();
-		initInfo.RenderPass = m_renderer.getSwapChainRenderPass();
-
-		m_overlay.init(initInfo);
-
-		m_running = true;
-	}
-
-	Application::~Application()
-	{
-		m_meshPipeline.cleanup();
-		m_renderer.cleanup();
-		m_device.cleanup();
 	}
 }

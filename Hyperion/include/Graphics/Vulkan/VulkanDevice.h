@@ -1,8 +1,11 @@
 #pragma once
 
+#include <Vulkan/vulkan.h>
+
+#include "Core/Game.h"
 #include "Core/HyperionPCH.h"
 
-#include <Vulkan/vulkan.h>
+#include "Graphics/Gui/Window.h"
 
 namespace Hyperion
 {
@@ -29,9 +32,8 @@ namespace Hyperion
 #else
 		const bool enableValidationLayers = true;
 #endif
-
-		VulkanDevice() {}
-		~VulkanDevice() {}
+		VulkanDevice() = default;
+		~VulkanDevice() = default;
 
 		// Not copyable or movable
 		VulkanDevice(const VulkanDevice&) = delete;
@@ -39,7 +41,7 @@ namespace Hyperion
 		VulkanDevice(VulkanDevice&&) = delete;
 		VulkanDevice& operator=(VulkanDevice&&) = delete;
 
-		void init();
+		void init(const ApplicationInfo& appInfo, Window* window);
 		void cleanup();
 
 		VkInstance getInstance() const { return m_instance; }
@@ -80,9 +82,9 @@ namespace Hyperion
 		VkPhysicalDeviceProperties properties;
 
 	private:
-		void createInstance();
+		void createInstance(const ApplicationInfo& appInfo);
 		void setupDebugMessenger();
-		void createSurface();
+		void createSurface(Window* window);
 		void pickPhysicalDevice();
 		void createLogicalDevice();
 		void createCommandPool();
@@ -100,16 +102,16 @@ namespace Hyperion
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
 	private:
-		VkInstance m_instance;
-		VkDebugUtilsMessengerEXT m_debugMessenger;
+		VkInstance m_instance = VK_NULL_HANDLE;
+		VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkCommandPool m_commandPool = VK_NULL_HANDLE;
 		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-		VkDevice m_device_;
-		VkSurfaceKHR m_surface_;
-		VkQueue m_graphicsQueue_;
-		VkQueue m_presentQueue_;
+		VkDevice m_device_ = VK_NULL_HANDLE;
+		VkSurfaceKHR m_surface_ = VK_NULL_HANDLE;
+		VkQueue m_graphicsQueue_ = VK_NULL_HANDLE;
+		VkQueue m_presentQueue_ = VK_NULL_HANDLE;
 		uint32_t m_graphicsQueueFamilyIndex = (uint32_t)-1;
 		VkAllocationCallbacks* m_allocator = nullptr;
 

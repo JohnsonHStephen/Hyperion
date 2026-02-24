@@ -7,6 +7,8 @@
 
 #include "Core/HyperionPCH.h"
 
+#include "Graphics/Gui/Window.h"
+
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
@@ -18,7 +20,7 @@ namespace Hyperion
 	class MeshPipeline
 	{
 	public:
-		void init(VulkanDevice* device, VkRenderPass renderPass);
+		void init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize);
 		void cleanup();
 
 		void draw(VkCommandBuffer& commandBuffer, const Camera& camera, const std::vector<GameObject>& objects);
@@ -33,7 +35,7 @@ namespace Hyperion
 
 	private:
 		void createGraphicsPipelineLayout();
-		void createGraphicsPipeline(VkRenderPass renderPass);
+		void createGraphicsPipeline(VkRenderPass renderPass, WindowSize frameBufferSize);
 
 	private:
 		VulkanDevice* m_device = nullptr;

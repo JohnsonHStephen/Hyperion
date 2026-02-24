@@ -28,8 +28,8 @@ namespace Hyperion
 	int WindowsWindow::init(const WindowProps& props)
 	{
 		m_Data.Title = props.Name;
-		m_Data.Width = props.Width;
-		m_Data.Height = props.Height;
+		m_Data.Width = props.WindowSize.width;
+		m_Data.Height = props.WindowSize.height;
 		m_Data.VSync = props.VSync;
 
 		if (s_GLFWWindowCount == 0)
@@ -43,7 +43,7 @@ namespace Hyperion
 		// Tell GLFW not to create an OpenGL context (we're using Vulkan)
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-		m_Window = glfwCreateWindow(props.Width, props.Height, m_Data.Title.c_str(), NULL, NULL);
+		m_Window = glfwCreateWindow(props.WindowSize.width, props.WindowSize.height, m_Data.Title.c_str(), NULL, NULL);
 		if (!m_Window)
 		{
 			glfwTerminate();
@@ -172,9 +172,11 @@ namespace Hyperion
 		m_Data.VSync = enabled;
 	}
 
-	void WindowsWindow::getFramebufferPixelSize(int& width, int& height) const
+	WindowSize WindowsWindow::getFramebufferPixelSize() const
 	{
-		glfwGetFramebufferSize(m_Window, &width, &height);
+		WindowSize size{};
+		glfwGetFramebufferSize(m_Window, &size.width, &size.height);
+		return size;
 	}
 
 	const char** WindowsWindow::requiredInstanceExtensions(uint32_t& extensionCount)

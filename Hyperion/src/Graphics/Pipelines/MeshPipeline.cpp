@@ -4,12 +4,12 @@
 
 namespace Hyperion
 {
-	void MeshPipeline::init(VulkanDevice* device, VkRenderPass renderPass)
+	void MeshPipeline::init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize)
 	{
 		m_device = device;
 
 		createGraphicsPipelineLayout();
-		createGraphicsPipeline(renderPass);
+		createGraphicsPipeline(renderPass, frameBufferSize);
 	}
 
 	void MeshPipeline::cleanup()
@@ -66,7 +66,7 @@ namespace Hyperion
 		}
 	}
 
-	void MeshPipeline::createGraphicsPipeline(VkRenderPass renderPass)
+	void MeshPipeline::createGraphicsPipeline(VkRenderPass renderPass, WindowSize frameBufferSize)
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
@@ -78,9 +78,7 @@ namespace Hyperion
 		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, colour) });
 
 		PipelineConfigInfo pipelineConfig{};
-		int width, height;
-		Application::get()->getWindow()->getFramebufferPixelSize(width, height);
-		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, width, height);
+		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, frameBufferSize.width, frameBufferSize.height);
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = m_pipelineLayout;
 

@@ -11,7 +11,7 @@ namespace Hyperion
 	class World
 	{
 	public:
-		World(uint32_t width, uint32_t height);
+		World();
 
 		Entity createEntity(const std::string& name = std::string());
 		Entity createEntityWithUUID(uuids::uuid uuid, const std::string& name = std::string());
@@ -32,8 +32,8 @@ namespace Hyperion
 
 	private:
 		entt::registry m_registry;
-		uint32_t m_viewportWidth;
-		uint32_t m_viewportHeight;
+		uint32_t m_viewportWidth = 0;
+		uint32_t m_viewportHeight = 0;
 
 		std::unordered_map<uuids::uuid, entt::entity> m_entityMap;
 

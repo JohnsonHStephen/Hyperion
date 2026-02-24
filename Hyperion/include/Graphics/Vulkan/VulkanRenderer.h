@@ -1,7 +1,8 @@
 #pragma once
 
-#include <optional>
 #include <Vulkan/vulkan.h>
+
+#include "Graphics/Gui/Window.h"
 
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanSwapChain.h"
@@ -17,7 +18,7 @@ namespace Hyperion
 		VulkanRenderer(const VulkanRenderer&) = delete;
 		VulkanRenderer& operator=(const VulkanRenderer&) = delete;
 
-		void init(VulkanDevice* device);
+		void init(VulkanDevice* device, WindowSize frameBufferSize);
 		void cleanup();
 
 		VkRenderPass getSwapChainRenderPass() const { return m_swapChain->getRenderPass(); }
@@ -39,15 +40,15 @@ namespace Hyperion
 
 		uint32_t getImageCount() const { return m_swapChain->imageCount(); }
 
-		VkCommandBuffer beginFrame();
-		void endFrame();
+		VkCommandBuffer beginFrame(Window* window);
+		void endFrame(Window* window);
 		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 		void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
 	private:
 		void createCommandBuffers();
 		void freeCommandBuffers();
-		void recreateSwapChain();
+		void recreateSwapChain(WindowSize frameBufferSize);
 
 	private:
 		VulkanDevice*						m_device	= nullptr;

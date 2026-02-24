@@ -1,14 +1,12 @@
 #include "Graphics/Vulkan/VulkanRenderer.h"
 
-#include "Core/Application.h"
-
 namespace Hyperion
 {
-	void VulkanRenderer::init(VulkanDevice* device)
+	void VulkanRenderer::init(VulkanDevice* device, WindowSize frameBufferSize)
 	{
 		m_device = device;
 
-		recreateSwapChain();
+		recreateSwapChain(frameBufferSize);
 		createCommandBuffers();
 	}
 
@@ -17,18 +15,18 @@ namespace Hyperion
 		freeCommandBuffers();
 	}
 
-	VkCommandBuffer VulkanRenderer::beginFrame()
+	VkCommandBuffer VulkanRenderer::beginFrame(Window* window)
 	{
 		if (m_isFrameStarted)
 			throw std::runtime_error("Can't call beginFrame while already in progress");
 
-		if (Application::get()->isMinimized())
+		if (window->isMinimized())
 			return nullptr;
 
 		auto result = m_swapChain->acquireNextImage(&m_currentImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
-			recreateSwapChain();
+			recreateSwapChain(window->getFramebufferPixelSize());
 			return nullptr;
 		}
 
@@ -51,7 +49,7 @@ namespace Hyperion
 		return commandBuffer;
 	}
 
-	void VulkanRenderer::endFrame()
+	void VulkanRenderer::endFrame(Window* window)
 	{
 		if (!m_isFrameStarted)
 			throw std::runtime_error("Can't call endFrame while frame is not in progress");
@@ -64,10 +62,10 @@ namespace Hyperion
 
 		auto result = m_swapChain->submitCommandBuffers(&commandBuffer, &m_currentImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-			Application::get()->getWindow()->isResized())
+			window->isResized())
 		{
-			Application::get()->getWindow()->resetResized();
-			recreateSwapChain();
+			window->resetResized();
+			recreateSwapChain(window->getFramebufferPixelSize());
 		}
 		else if (result != VK_SUCCESS)
 		{
@@ -150,14 +148,11 @@ namespace Hyperion
 		m_commandBuffers.clear();
 	}
 
-	void VulkanRenderer::recreateSwapChain()
+	void VulkanRenderer::recreateSwapChain(WindowSize frameBufferSize)
 	{
 		vkDeviceWaitIdle(m_device->device());
 
-		int width, height;
-		Application::get()->getWindow()->getFramebufferPixelSize(width, height);
-
-		VkExtent2D extent(width, height);
+		VkExtent2D extent(frameBufferSize.width, frameBufferSize.height);
 		if (m_swapChain == nullptr)
 		{
 			m_swapChain = std::make_unique<VulkanSwapChain>();

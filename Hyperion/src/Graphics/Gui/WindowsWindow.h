@@ -36,7 +36,7 @@ namespace Hyperion
 			return info;
 		}
 
-		void getFramebufferPixelSize(int& width, int& height) const override;
+		WindowSize getFramebufferPixelSize() const override;
 
 		static const char** requiredInstanceExtensions(uint32_t& extensionCount);
 
