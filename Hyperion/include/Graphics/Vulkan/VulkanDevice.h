@@ -2,13 +2,14 @@
 
 #include <Vulkan/vulkan.h>
 
-#include "Core/Game.h"
 #include "Core/HyperionPCH.h"
 
 #include "Graphics/Gui/Window.h"
 
 namespace Hyperion
 {
+	class ApplicationInfo; // Forward declaration for Game.h
+
 	struct SwapChainSupportDetails
 	{
 		VkSurfaceCapabilitiesKHR capabilities;

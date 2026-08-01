@@ -1,11 +1,13 @@
 #include "Core/Hyperion.h"
 
+#include "World/Entity.h"
+
 class SandboxGame: public Hyperion::Game
 {
 public:
 	virtual Hyperion::ApplicationInfo getAppInfo() override;
 
-	virtual void init() override;
+	virtual void init(Hyperion::GameContext context) override;
 	virtual void cleanup() override;
 
 	virtual void onUpdate(float dt) override;
@@ -18,4 +20,5 @@ public:
 
 private:
 	Hyperion::World m_world{};
+	Hyperion::Entity cubeEntity;
 };

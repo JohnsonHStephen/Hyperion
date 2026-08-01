@@ -1,7 +1,6 @@
 ﻿# source code
 target_sources (Hyperion
 	PRIVATE
-		"Mesh.cpp"
 )
 
 add_subdirectory ("Gui")

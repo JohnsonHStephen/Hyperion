@@ -12,8 +12,10 @@
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanPipeline.h"
 
+#include "Resources/MeshCache.h"
+
 #include "World/Camera.h"
-#include "World/GameObject.h"
+#include "World/World.h"
 
 namespace Hyperion
 {
@@ -23,7 +25,7 @@ namespace Hyperion
 		void init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize);
 		void cleanup();
 
-		void draw(VkCommandBuffer& commandBuffer, const Camera& camera, const std::vector<GameObject>& objects);
+		void draw(VkCommandBuffer& commandBuffer, const Camera& camera, const World& world, const MeshCache& meshCache);
 
 	private:
 		struct PushConstants

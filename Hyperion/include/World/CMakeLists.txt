@@ -7,6 +7,6 @@ target_sources (Hyperion
 		FILES
 			"Camera.h"
 			"Components.h"
-			"GameObject.h"
+			"Entity.h"
 			"World.h"
 )

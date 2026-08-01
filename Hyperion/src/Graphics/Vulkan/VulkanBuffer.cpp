@@ -3,30 +3,29 @@
 namespace Hyperion
 {
 	void VulkanBuffer::init(
-		VulkanDevice* device,
+		VulkanDevice& device,
 		VkDeviceSize bufferSize,
 		VkBufferUsageFlags usageFlags,
 		VkMemoryPropertyFlags memoryPropertyFlags)
 	{
-		m_device = device;
 		m_bufferSize = bufferSize;
 		m_usageFlags = usageFlags;
 		m_memoryPropertyFlags = memoryPropertyFlags;
 
-		m_device->createBuffer(m_bufferSize, m_usageFlags, m_memoryPropertyFlags, m_buffer, m_bufferMemory);
+		device.createBuffer(m_bufferSize, m_usageFlags, m_memoryPropertyFlags, m_buffer, m_bufferMemory);
 	}
 
-	void VulkanBuffer::cleanup() const
+	void VulkanBuffer::cleanup(const VulkanDevice& device) const
 	{
-		vkDestroyBuffer(m_device->device(), m_buffer, nullptr);
-		vkFreeMemory(m_device->device(), m_bufferMemory, nullptr);
+		vkDestroyBuffer(device.device(), m_buffer, nullptr);
+		vkFreeMemory(device.device(), m_bufferMemory, nullptr);
 	}
 
-	void VulkanBuffer::setData(const void* data, VkDeviceSize size, VkDeviceSize offset) const
+	void VulkanBuffer::setData(const VulkanDevice& device, const void* data, VkDeviceSize size, VkDeviceSize offset) const
 	{
 		void* tempData;
-		vkMapMemory(m_device->device(), m_bufferMemory, offset, size, 0, &tempData);
+		vkMapMemory(device.device(), m_bufferMemory, offset, size, 0, &tempData);
 		memcpy(tempData, data, (size_t)size);
-		vkUnmapMemory(m_device->device(), m_bufferMemory);
+		vkUnmapMemory(device.device(), m_bufferMemory);
 	}
 }

@@ -1,7 +1,12 @@
 #include "Core/Application.h"
 
+#include "Resources/MeshCache.h"
+#include "Resources/MeshLoader.h"
+
 #include "World/Camera.h"
-#include "World/GameObject.h"
+#include "World/Components.h"
+#include "World/Entity.h"
+#include "World/World.h"
 
 #define BIND_EVENT_FN(fn)  [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
@@ -18,6 +23,7 @@ namespace Hyperion
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
 		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass(), m_window->getFramebufferPixelSize());
+		m_meshCache.init(m_device);
 
 		ImGuiOverlay::InitInfo initInfo{};
 		initInfo.Window = m_window.get();
@@ -39,6 +45,7 @@ namespace Hyperion
 
 	Application::~Application()
 	{
+		m_meshCache.cleanup(m_device);
 		m_meshPipeline.cleanup();
 		m_renderer.cleanup();
 		m_device.cleanup();
@@ -47,41 +54,7 @@ namespace Hyperion
 	void Application::run(Game* game)
 	{
 		m_game = game;
-		m_game->init();
-
-		std::vector<GameObject> objects;
-		objects.emplace_back("Square", &m_device, glm::vec3{0.0f, 0.0f, 2.5f});
-		glm::vec3 rotation(0.0f, 0.0f, 0.0f);
-
-		std::vector<Mesh::Vertex> vertices{
-			{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-			{{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
-			{{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
-			{{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}},
-			{{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-			{{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 0.0f}}
-		};
-
-		objects[0].mesh.loadCustomData(vertices, {
-			0, 1, 2,	// front face
-			2, 1, 3,
-
-			1, 5, 3,	// right face
-			3, 5, 7,
-
-			5, 4, 7,	// back face
-			7, 4, 6,
-			
-			4, 0, 6,	// left face
-			6, 0, 2,
-			
-			4, 5, 0,	// top face
-			0, 5, 1,
-			
-			2, 3, 6,	// bottom face
-			6, 3, 7});
+		m_game->init(GameContext{ m_device, m_meshCache });
 
 		Camera camera{};
 		camera.setProjectionType(Camera::ProjectionType::Perspective);
@@ -96,12 +69,8 @@ namespace Hyperion
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
 				m_game->onRender();
 
-				rotation.z += 0.001f;
-				rotation.y += 0.002f;
-				rotation.x += 0.0005f;
-				objects[0].transform.rotation = rotation;
 				camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
-				m_meshPipeline.draw(commandBuffer, camera, objects);
+				m_meshPipeline.draw(commandBuffer, camera, m_game->getWorld(), m_meshCache);
 
 				m_overlay.begin();
 				m_game->onOverlay();

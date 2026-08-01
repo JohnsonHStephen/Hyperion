@@ -20,7 +20,6 @@ namespace Hyperion
 	{
 		Entity entity = { m_registry.create(), this };
 		entity.addComponent<IDComponent>(uuid);
-		entity.addComponent<TransformComponent>();
 		auto& tag = entity.addComponent<TagComponent>();
 		tag.Tag = ((name.empty()) ? "Entity" : name);
 

@@ -11,6 +11,8 @@
 
 #include "Graphics/Pipelines/MeshPipeline.h"
 
+#include "Resources/MeshCache.h"
+
 #include "Graphics/Vulkan/VulkanDevice.h"
 #include "Graphics/Vulkan/VulkanRenderer.h"
 
@@ -46,6 +48,7 @@ namespace Hyperion
 		ImGuiOverlay m_overlay{};
 
 		MeshPipeline m_meshPipeline{};
+		MeshCache m_meshCache{};
 
 		bool m_running = false;
 	};

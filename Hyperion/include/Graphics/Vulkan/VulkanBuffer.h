@@ -12,18 +12,17 @@ namespace Hyperion
 	{
 	public:
 		void init(
-			VulkanDevice* device,
+			VulkanDevice& device,
 			VkDeviceSize bufferSize,
 			VkBufferUsageFlags usageFlags,
 			VkMemoryPropertyFlags memoryPropertyFlags);
-		void cleanup() const;
+		void cleanup(const VulkanDevice& device) const;
 
 		VkBuffer getInternalBuffer() const { return m_buffer; };
 
-		void setData(const void* data, VkDeviceSize size, VkDeviceSize offset = 0) const;
+		void setData(const VulkanDevice& device, const void* data, VkDeviceSize size, VkDeviceSize offset = 0) const;
 
 	private:
-		VulkanDevice* m_device = nullptr;
 		VkBuffer				m_buffer = VK_NULL_HANDLE;
 		VkDeviceMemory			m_bufferMemory = VK_NULL_HANDLE;
 

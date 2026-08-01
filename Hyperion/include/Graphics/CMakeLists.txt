@@ -6,7 +6,6 @@ target_sources (Hyperion
 		FILE_SET api
 		TYPE HEADERS
 		FILES
-			"Mesh.h"
 )
 
 

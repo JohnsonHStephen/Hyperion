@@ -7,6 +7,8 @@
 
 #include "Core/HyperionPCH.h"
 
+#include <Resources/MeshCache.h>
+
 namespace Hyperion
 {
 	struct IDComponent
@@ -105,6 +107,18 @@ namespace Hyperion
 					invScale.z * (c1 * c2),
 				},
 			};
+		}
+	};
+
+	struct MeshComponent
+	{
+		MeshId meshId;
+
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
+		MeshComponent(MeshId meshId)
+			: meshId(meshId)
+		{
 		}
 	};
 }

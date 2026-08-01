@@ -25,7 +25,7 @@ namespace Hyperion
 		void viewportResize(uint32_t width, uint32_t height);
 
 		template<typename... Components>
-		auto getAllEntitiesWith()
+		auto getAllEntitiesWith() const
 		{
 			return m_registry.view<Components...>();
 		}

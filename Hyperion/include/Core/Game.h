@@ -2,6 +2,10 @@
 
 #include "Events/Event.h"
 
+#include "Graphics/Vulkan/VulkanDevice.h"
+
+#include "Resources/MeshCache.h"
+
 #include "World/World.h"
 
 namespace Hyperion
@@ -16,12 +20,18 @@ namespace Hyperion
 		std::string appName;
 	};
 
+	struct GameContext
+	{
+		VulkanDevice& device;
+		MeshCache& meshCache;
+	};
+
 	class Game
 	{
 	public:
 		virtual ApplicationInfo getAppInfo() = 0;
 
-		virtual void init() = 0;
+		virtual void init(GameContext context) = 0;
 		virtual void cleanup() = 0;
 
 		virtual void onUpdate(float dt) = 0;

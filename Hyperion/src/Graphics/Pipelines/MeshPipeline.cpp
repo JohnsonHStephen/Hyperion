@@ -2,6 +2,8 @@
 
 #include "Core/Application.h"
 
+#include "World/Components.h"
+
 namespace Hyperion
 {
 	void MeshPipeline::init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize)
@@ -17,15 +19,18 @@ namespace Hyperion
 		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
-	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const Camera& camera, const std::vector<GameObject>& objects)
+	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const Camera& camera, const World& world, const MeshCache& meshCache)
 	{
 		m_pipeline.bind(commandBuffer);
 
-		for (const auto& object : objects)
+		const auto meshEntities = world.getAllEntitiesWith<TransformComponent, MeshComponent>();
+		for (auto meshEntity : meshEntities)
 		{
 			PushConstants pushConstants{};
-			pushConstants.transform = object.transform.getTransform();
-			pushConstants.normal = object.transform.getNormal();
+
+			auto [transform, meshId] = meshEntities.get<TransformComponent, MeshComponent>(meshEntity);
+			pushConstants.transform = transform.getTransform();
+			pushConstants.normal = transform.getNormal();
 			pushConstants.projView = camera.getProjection() * camera.getView();
 
 			vkCmdPushConstants(
@@ -36,12 +41,13 @@ namespace Hyperion
 				sizeof(PushConstants),
 				&pushConstants);
 
-			VkBuffer buffers[] = { object.mesh.getVertexBuffer() };
+			const auto& mesh = meshCache.getMesh(meshId.meshId);
+			VkBuffer buffers[] = { mesh.vertexBuffer.getInternalBuffer()};
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-			vkCmdBindIndexBuffer(commandBuffer, object.mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer.getInternalBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexed(commandBuffer, object.mesh.getIndexCount(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, mesh.numIndicies, 1, 0, 0, 0);
 		}
 
 	}
@@ -70,12 +76,12 @@ namespace Hyperion
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
-		bindingDescriptions[0].stride = sizeof(Mesh::Vertex);
+		bindingDescriptions[0].stride = sizeof(CPUMesh::Vertex);
 		bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
-		attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, position) });
-		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex, colour) });
+		attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(CPUMesh::Vertex, position) });
+		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(CPUMesh::Vertex, colour) });
 
 		PipelineConfigInfo pipelineConfig{};
 		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, frameBufferSize.width, frameBufferSize.height);
