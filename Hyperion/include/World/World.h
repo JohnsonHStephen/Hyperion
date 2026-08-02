@@ -20,15 +20,20 @@ namespace Hyperion
 		Entity findEntityByName(std::string_view name);
 		Entity getEntityByUUID(uuids::uuid uuid);
 
-		Entity getPrimaryCameraEntity();
-
 		void viewportResize(uint32_t width, uint32_t height);
 
 		template<typename... Components>
-		auto getAllEntitiesWith() const
+		std::vector<Entity> getAllEntitiesWith()
 		{
-			return m_registry.view<Components...>();
-		}
+			std::vector<Entity> entities;
+			auto view = m_registry.view<Components...>();
+
+			for (auto entity : view)
+			{
+				entities.emplace_back(entity, this);
+			}
+			return entities;
+		};
 
 	private:
 		entt::registry m_registry;

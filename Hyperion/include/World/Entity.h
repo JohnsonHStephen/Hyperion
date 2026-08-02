@@ -4,10 +4,6 @@
 #include <stduuid/uuid.h>
 
 #include "World/Components.h"
-#include "World/World.h"
-
-template <typename T, typename... Ts>
-concept IsOneOf = (std::is_same_v<T, Ts> || ...);
 
 
 namespace Hyperion
@@ -18,8 +14,15 @@ namespace Hyperion
 		Entity() = default;
 		Entity(entt::entity handle, World* world)
 			: m_entityHandle(handle), m_world(world)
-		{};
-		Entity(const Entity& other) = default;
+		{
+			if (m_world == nullptr)
+				throw std::runtime_error("Entity must be part of a world");
+		};
+		Entity(const Entity& other)
+		{
+			m_entityHandle = other.m_entityHandle;
+			m_world = other.m_world;
+		};
 
 		template<typename T, typename... Args>
 		T& addComponent(Args&&... args)
@@ -30,25 +33,10 @@ namespace Hyperion
 			return m_world->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
 		}
 
-		template<typename T, typename... Components, typename... Args>
-		T& addComponent(entt::basic_view<Components...> view, Args&&... args)
-		{
-			if (hasComponent<T>(view))
-				throw std::runtime_error("Entity already has component");
-
-			return view.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
-		}
-
 		template<typename T, typename... Args>
 		T& addOrReplaceComponent(Args&&... args)
 		{
 			return m_world->m_registry.emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
-		}
-
-		template<typename T, typename... Components, typename... Args>
-		T& addOrReplaceComponent(entt::basic_view<Components...> view, Args&&... args)
-		{
-			return view.emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
@@ -60,27 +48,12 @@ namespace Hyperion
 			return m_world->m_registry.get<T>(m_entityHandle);
 		}
 
-		template<typename T, typename... Components>
-			requires IsOneOf<T, Components...>
-		T& getComponent(entt::basic_view<Components...> view)
-		{
-			if (!hasComponent<T>(view))
-				throw std::runtime_error("Entity doesn't have component");
-
-			return view.get<T>(m_entityHandle);
-		}
-
 		template<typename T>
 		bool hasComponent()
 		{
+			if (m_world == nullptr)
+				throw std::runtime_error("Entity is not part of a world");
 			return m_world->m_registry.all_of<T>(m_entityHandle);
-		}
-
-		template<typename T, typename... Components>
-			requires IsOneOf<T, Components...>
-		bool hasComponent(entt::basic_view<Components...> view)
-		{
-			return view.all_of<T>(m_entityHandle);
 		}
 
 		template<typename T>
@@ -90,16 +63,6 @@ namespace Hyperion
 				throw std::runtime_error("Entity doesn't have component");
 
 			m_world->m_registry.remove<T>(m_entityHandle);
-		}
-
-		template<typename T, typename... Components>
-			requires IsOneOf<T, Components...>
-		void removeComponent(entt::basic_view<Components...> view)
-		{
-			if (!hasComponent<T>(view))
-				throw std::runtime_error("Entity doesn't have component");
-
-			view.remove<T>(m_entityHandle);
 		}
 
 		operator bool() const { return m_entityHandle != entt::null; }

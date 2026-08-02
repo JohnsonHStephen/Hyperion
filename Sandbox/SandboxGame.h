@@ -1,5 +1,6 @@
 #include "Core/Hyperion.h"
 
+#include "World/Camera.h"
 #include "World/Entity.h"
 
 class SandboxGame: public Hyperion::Game
@@ -18,7 +19,12 @@ public:
 
 	virtual Hyperion::World& getWorld() override { return m_world; }
 
+	virtual std::optional<Hyperion::Entity> getPrimaryCameraEntity() override;
+
 private:
 	Hyperion::World m_world{};
-	Hyperion::Entity cubeEntity;
+	Hyperion::Entity m_cubeEntity;
+	Hyperion::Entity m_cameraEntity;
+
+	glm::vec3 m_viewDirection{ 0.0f, 0.0f, 0.0f };
 };

@@ -25,7 +25,7 @@ namespace Hyperion
 		void init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize);
 		void cleanup();
 
-		void draw(VkCommandBuffer& commandBuffer, const Camera& camera, const World& world, const MeshCache& meshCache);
+		void draw(VkCommandBuffer& commandBuffer, Entity& camera, World& world, const MeshCache& meshCache);
 
 	private:
 		struct PushConstants

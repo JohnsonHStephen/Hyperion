@@ -1,7 +1,10 @@
 #include "World/World.h"
 
+#include <entt/entt.hpp>
+
 #include "World/Components.h"
 #include "World/Entity.h"
+
 
 namespace Hyperion
 {
@@ -52,11 +55,6 @@ namespace Hyperion
 			return { m_entityMap.at(uuid), this };
 
 		return {};
-	}
-
-	Entity World::getPrimaryCameraEntity()
-	{
-		return Entity();
 	}
 
 	void World::viewportResize(uint32_t width, uint32_t height)

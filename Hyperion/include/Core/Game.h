@@ -6,6 +6,7 @@
 
 #include "Resources/MeshCache.h"
 
+#include "World/Camera.h"
 #include "World/World.h"
 
 namespace Hyperion
@@ -41,5 +42,7 @@ namespace Hyperion
 		virtual void onRender() = 0;
 
 		virtual World& getWorld() = 0;
+
+		virtual std::optional<Entity> getPrimaryCameraEntity() = 0;
 	};
 }

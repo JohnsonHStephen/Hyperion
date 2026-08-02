@@ -3,6 +3,7 @@
 #include "Core/Application.h"
 
 #include "World/Components.h"
+#include "World/Entity.h"
 
 namespace Hyperion
 {
@@ -19,19 +20,20 @@ namespace Hyperion
 		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
-	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, const Camera& camera, const World& world, const MeshCache& meshCache)
+	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, Entity& camera, World& world, const MeshCache& meshCache)
 	{
 		m_pipeline.bind(commandBuffer);
 
-		const auto meshEntities = world.getAllEntitiesWith<TransformComponent, MeshComponent>();
-		for (auto meshEntity : meshEntities)
+		auto meshEntities = world.getAllEntitiesWith<TransformComponent, MeshComponent>();
+		for (auto& meshEntity : meshEntities)
 		{
 			PushConstants pushConstants{};
 
-			auto [transform, meshId] = meshEntities.get<TransformComponent, MeshComponent>(meshEntity);
+			auto transform = meshEntity.getComponent<TransformComponent>();
+			auto meshId = meshEntity.getComponent<MeshComponent>();
 			pushConstants.transform = transform.getTransform();
 			pushConstants.normal = transform.getNormal();
-			pushConstants.projView = camera.getProjection() * camera.getView();
+			pushConstants.projView = camera.getComponent<CameraComponent>().camera.getProjection() * camera.getComponent<TransformComponent>().getTransform();
 
 			vkCmdPushConstants(
 				commandBuffer,

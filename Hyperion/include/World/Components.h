@@ -7,7 +7,9 @@
 
 #include "Core/HyperionPCH.h"
 
-#include <Resources/MeshCache.h>
+#include "Resources/MeshCache.h"
+
+#include "World/Camera.h"
 
 namespace Hyperion
 {
@@ -58,6 +60,7 @@ namespace Hyperion
 			const float s2 = glm::sin(rotation.x);
 			const float c1 = glm::cos(rotation.y);
 			const float s1 = glm::sin(rotation.y);
+
 			return glm::mat4{
 				{
 					scale.x * (c1 * c3 + s1 * s2 * s3),
@@ -118,6 +121,19 @@ namespace Hyperion
 		MeshComponent(const MeshComponent&) = default;
 		MeshComponent(MeshId meshId)
 			: meshId(meshId)
+		{
+		}
+	};
+
+	struct CameraComponent
+	{
+		bool primary = true;
+		Camera camera;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+		CameraComponent(const Camera& camera, bool primary = false)
+			: camera(camera), primary(primary)
 		{
 		}
 	};

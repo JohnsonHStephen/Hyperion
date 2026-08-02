@@ -56,10 +56,6 @@ namespace Hyperion
 		m_game = game;
 		m_game->init(GameContext{ m_device, m_meshCache });
 
-		Camera camera{};
-		camera.setProjectionType(Camera::ProjectionType::Perspective);
-		camera.setPerspective(glm::radians(45.0f), 0.01f, 1000.0f);
-
 		while (m_running)
 		{
 			m_game->onUpdate(1);
@@ -69,8 +65,14 @@ namespace Hyperion
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
 				m_game->onRender();
 
-				camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
-				m_meshPipeline.draw(commandBuffer, camera, m_game->getWorld(), m_meshCache);
+				auto primaryCameraOpt = m_game->getPrimaryCameraEntity();
+
+				if (primaryCameraOpt)
+				{
+					auto primaryCamera = primaryCameraOpt.value();
+					primaryCamera.getComponent<CameraComponent>().camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
+					m_meshPipeline.draw(commandBuffer, primaryCamera, m_game->getWorld(), m_meshCache);
+				}
 
 				m_overlay.begin();
 				m_game->onOverlay();
