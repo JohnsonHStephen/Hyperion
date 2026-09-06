@@ -9,3 +9,5 @@ target_sources (Hyperion
 			"ImGuiOverlay.h"
 			"Window.h"
 )
+
+add_subdirectory("Adapters")

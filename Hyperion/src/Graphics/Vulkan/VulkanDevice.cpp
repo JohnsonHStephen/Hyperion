@@ -2,14 +2,18 @@
 
 #include "Core/Application.h"
 #include "Core/EngineInfo.h"
+
 #include <iostream>
 #include <map>
 #include <set>
+
 #ifdef PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <vulkan/vulkan_win32.h>
 #endif
+
+#define VMA_IMPLEMENTATION
+#include <vma/vk_mem_alloc.h>
 
 namespace Hyperion
 {
@@ -64,31 +68,49 @@ namespace Hyperion
 		createSurface(window);
 		pickPhysicalDevice();
 		createLogicalDevice();
-		createDescriptorPool();
-		createCommandPool();
+		m_transientCommandPool = createCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+		initializeVMA();
+		createTimelineSemaphore();
 	}
 
 	void VulkanDevice::cleanup()
 	{
-		vkDestroyCommandPool(m_device_, m_commandPool, m_allocator);
-		vkDestroyDescriptorPool(m_device_, m_descriptorPool, m_allocator);
-		vkDestroyDevice(m_device_, m_allocator);
+		vmaDestroyAllocator(m_vmaAllocator);
+
+		vkDestroySemaphore(m_device_, m_timelineSemaphore, nullptr);
+
+		vkDestroyDevice(m_device_, nullptr);
 
 		if (enableValidationLayers)
 		{
-			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, m_allocator);
+			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
 		}
 
-		vkDestroySurfaceKHR(m_instance, m_surface_, m_allocator);
+		vkDestroySurfaceKHR(m_instance, m_surface_, nullptr);
 		if (m_instance != VK_NULL_HANDLE)
-			vkDestroyInstance(m_instance, m_allocator);
+			vkDestroyInstance(m_instance, nullptr);
+
+		volkFinalize();
 	}
 
 	void VulkanDevice::createInstance(const ApplicationInfo& appInfo)
 	{
+		if (volkInitialize() != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to initialize volk!");
+		}
+
 		if (enableValidationLayers && !checkValidationLayerSupport())
 		{
 			throw std::runtime_error("validation layers requested, but not available!");
+		}
+
+		findInstanceVersion();
+
+		// dynamic rendering is an extension for vulkan 1.2 that needs to be enabled explicitly, but is core in vulkan 1.3+
+		if (m_instanceVersion.Major() == 1 && m_instanceVersion.Minor() == 2)
+		{
+			m_deviceExtensions.emplace_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
 		}
 
 		VkApplicationInfo vkAppInfo = {};
@@ -104,7 +126,7 @@ namespace Hyperion
 			EngineInfo::VERSION_MAJOR,
 			EngineInfo::VERSION_MINOR,
 			EngineInfo::VERSION_PATCH);
-		vkAppInfo.apiVersion = VK_API_VERSION_1_3;
+		vkAppInfo.apiVersion = m_instanceVersion.Number;
 
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -138,6 +160,8 @@ namespace Hyperion
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
+
+		volkLoadInstance(m_instance);
 	}
 
 	void VulkanDevice::setupDebugMessenger()
@@ -145,7 +169,7 @@ namespace Hyperion
 		if (!enableValidationLayers) return;
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
 		populateDebugMessengerCreateInfo(createInfo);
-		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, m_allocator, &m_debugMessenger) != VK_SUCCESS)
+		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to set up debug messenger!");
 		}
@@ -153,20 +177,8 @@ namespace Hyperion
 
 	void VulkanDevice::createSurface(Window* window)
 	{
-#ifdef PLATFORM_WINDOWS
-		Window::NativeWindowInfo info = window->getNativeWindowInfo();
-		VkWin32SurfaceCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		createInfo.hinstance = (HINSTANCE)info.instance;
-		createInfo.hwnd = (HWND)info.handle;
-		if (vkCreateWin32SurfaceKHR(m_instance, &createInfo, m_allocator, &m_surface_) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create Win32 window surface!");
-		}
-#else
-		(void)window; // unused on non-Windows
-		throw std::runtime_error("Surface creation not implemented for this platform");
-#endif
+		auto adapter = window->getGraphicsAdapter();
+		m_surface_ = adapter->createVulkanSurface(m_instance);
 	}
 
 	void VulkanDevice::pickPhysicalDevice()
@@ -196,10 +208,10 @@ namespace Hyperion
 
 	void VulkanDevice::createLogicalDevice()
 	{
-		QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+		auto graphicsQueueFamily = findQueueFamilies(m_physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+		std::set<uint32_t> uniqueQueueFamilies = { graphicsQueueFamily.value() };
 
 		float queuePriority = 1.0f;
 		for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -212,58 +224,142 @@ namespace Hyperion
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		VkPhysicalDeviceFeatures deviceFeatures{};
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		VkPhysicalDeviceVulkan14Features deviceFeatures14 = {};
+		deviceFeatures14.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+		deviceFeatures14.pNext = nullptr;
+
+		VkPhysicalDeviceVulkan13Features deviceFeatures13 = {};
+		deviceFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		deviceFeatures13.pNext = &deviceFeatures14;
+		deviceFeatures13.synchronization2 = VK_TRUE;
+		deviceFeatures13.dynamicRendering = VK_TRUE;
+
+		VkPhysicalDeviceVulkan12Features deviceFeatures12 = {};
+		deviceFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		deviceFeatures12.pNext = &deviceFeatures13;
+		deviceFeatures12.timelineSemaphore = VK_TRUE;
+
+		VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+		deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		deviceFeatures2.pNext = &deviceFeatures12;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pNext = &deviceFeatures2;
 
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-		createInfo.pEnabledFeatures = &deviceFeatures; // TODO: update to use pnext chain for features
+		createInfo.pEnabledFeatures = nullptr;
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
-		if (vkCreateDevice(m_physicalDevice, &createInfo, m_allocator, &m_device_) != VK_SUCCESS)
+		if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device_) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create logical device!");
 		}
 
-		m_graphicsQueueFamilyIndex = indices.graphicsFamily.value();
-		vkGetDeviceQueue(m_device_, indices.graphicsFamily.value(), 0, &m_graphicsQueue_);
-		vkGetDeviceQueue(m_device_, indices.presentFamily.value(), 0, &m_presentQueue_);
+		m_graphicsQueueFamilyIndex = graphicsQueueFamily.value();
+		vkGetDeviceQueue(m_device_, graphicsQueueFamily.value(), 0, &m_graphicsQueue_);
+
+		volkLoadDevice(m_device_);
 	}
 
-	void VulkanDevice::createCommandPool()
+	void VulkanDevice::initializeVMA()
 	{
-		QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
+		VmaVulkanFunctions vulkanFunctions = {};
 
-		VkCommandPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-		poolInfo.flags =
-			VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		VmaAllocatorCreateInfo vmaAllocatorInfo = {};
+		vmaAllocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		vmaAllocatorInfo.physicalDevice = m_physicalDevice;
+		vmaAllocatorInfo.device = m_device_;
+		vmaAllocatorInfo.pVulkanFunctions = &vulkanFunctions;
+		vmaAllocatorInfo.instance = m_instance;
+		vmaAllocatorInfo.vulkanApiVersion = m_instanceVersion.Number;
 
-		if (vkCreateCommandPool(m_device_, &poolInfo, m_allocator, &m_commandPool) != VK_SUCCESS)
+		vmaImportVulkanFunctionsFromVolk(&vmaAllocatorInfo, &vulkanFunctions);
+
+		if (vmaCreateAllocator(&vmaAllocatorInfo, &m_vmaAllocator) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to create command pool!");
+			throw std::runtime_error("failed to create VMA allocator!");
 		}
 	}
 
-	void VulkanDevice::createDescriptorPool()
+	VkCommandPool VulkanDevice::createCommandPool(VkCommandPoolCreateFlags flags)
 	{
-		VkDescriptorPoolSize pool_sizes[] =
+		auto graphicsQueueFamily = findPhysicalQueueFamilies();
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = graphicsQueueFamily.value();
+		if (flags != 0)
+			poolInfo.flags = flags;
+
+		VkCommandPool commandPool;
+		if (vkCreateCommandPool(m_device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
 		{
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 },
-		};
-		VkDescriptorPoolCreateInfo pool_info = {};
-		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		pool_info.maxSets = 1;
-		pool_info.poolSizeCount = (uint32_t)((int)(sizeof(pool_sizes) / sizeof(*(pool_sizes))));
-		pool_info.pPoolSizes = pool_sizes;
-		vkCreateDescriptorPool(m_device_, &pool_info, m_allocator, &m_descriptorPool);
+			throw std::runtime_error("failed to create command pool!");
+		}
+
+		return commandPool;
+	}
+
+	void VulkanDevice::waitForTimelineSemaphore(const uint64_t value, uint64_t timeout)
+	{
+		VkSemaphoreWaitInfo waitInfo{};
+		waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+		waitInfo.semaphoreCount = 1;
+		waitInfo.pSemaphores = &m_timelineSemaphore;
+		waitInfo.pValues = &value;
+
+		if (vkWaitSemaphores(m_device_, &waitInfo, timeout) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to wait for timeline semaphore!");
+		}
+	}
+
+	InstanceVersion VulkanDevice::getInstanceVersion() const
+	{
+		if (m_instanceVersion.Number == 0) 
+			throw std::runtime_error("Instance version not initialized");
+		return m_instanceVersion;
+	}
+
+	void VulkanDevice::createTimelineSemaphore()
+	{
+		VkSemaphoreTypeCreateInfo semaphoreTypeInfo = {};
+		semaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+		semaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+		semaphoreTypeInfo.initialValue = VulkanRenderer::MAX_FRAMES_IN_FLIGHT;
+
+		VkSemaphoreCreateInfo semaphoreInfo = {};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		semaphoreInfo.pNext = &semaphoreTypeInfo;
+
+		if (vkCreateSemaphore(m_device_, &semaphoreInfo, nullptr, &m_timelineSemaphore) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to create synchronization objects for a frame!");
+		}
+	}
+
+	void VulkanDevice::findInstanceVersion()
+	{
+		VkResult result = vkEnumerateInstanceVersion(&m_instanceVersion.Number);
+		if (result != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to get instance version: " + std::to_string(result));
+		}
+
+		if (m_instanceVersion.Major() < 1 || (m_instanceVersion.Major() == 1 && m_instanceVersion.Minor() < 2))
+		{
+			throw std::runtime_error("Vulkan instance version is too low: " +
+				std::to_string(m_instanceVersion.Major()) + "." +
+				std::to_string(m_instanceVersion.Minor()) + "." +
+				std::to_string(m_instanceVersion.Patch()));
+		}
+
+		std::cout << "Vulkan instance version: " << m_instanceVersion.Major() << "."
+			<< m_instanceVersion.Minor() << "." << m_instanceVersion.Patch() << std::endl;
 	}
 
 	std::vector<VkPhysicalDevice> VulkanDevice::getPhysicalDevices()
@@ -287,15 +383,32 @@ namespace Hyperion
 	{
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
-		VkPhysicalDeviceFeatures deviceFeatures;
-		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+		VkPhysicalDeviceVulkan14Features supportedFeatures14 = {};
+		supportedFeatures14.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+		supportedFeatures14.pNext = nullptr;
+		VkPhysicalDeviceVulkan13Features supportedFeatures13 = {};
+		supportedFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		supportedFeatures13.pNext = &supportedFeatures14;
+		VkPhysicalDeviceVulkan12Features supportedFeatures12 = {};
+		supportedFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		supportedFeatures12.pNext = &supportedFeatures13;
+		VkPhysicalDeviceVulkan11Features supportedFeatures11 = {};
+		supportedFeatures11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+		supportedFeatures11.pNext = &supportedFeatures12;
+
+		VkPhysicalDeviceFeatures2 deviceFeatures = {};
+		deviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		deviceFeatures.pNext = &supportedFeatures11;
+
+		vkGetPhysicalDeviceFeatures2(device, &deviceFeatures);
 
 		// Application can't function without geometry shaders
-		if (!deviceFeatures.geometryShader)
+		if (!supportedFeatures12.timelineSemaphore || !supportedFeatures13.dynamicRendering || !supportedFeatures13.synchronization2)
 			return 0;
 
 		// Application requires graphics and present queue support for the window surface
-		if (!findQueueFamilies(device).isComplete())
+		if (!findQueueFamilies(device))
 			return 0;
 
 		if (!checkDeviceExtensionSupport(device))
@@ -426,38 +539,28 @@ namespace Hyperion
 		return true;
 	}
 
-	QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
+	std::optional<uint32_t> VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
 	{
-		QueueFamilyIndices indices;
-
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, nullptr);
 
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+		std::vector<VkQueueFamilyProperties2> queueFamilies(queueFamilyCount, {.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2});
+		vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, queueFamilies.data());
 
 		int i = 0;
 		for (const auto& queueFamily : queueFamilies)
 		{
-			if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			{
-				indices.graphicsFamily = i;
-			}
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface_, &presentSupport);
-			if (queueFamily.queueCount > 0 && presentSupport)
+			if (queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT && presentSupport)
 			{
-				indices.presentFamily = i;
-			}
-			if (indices.isComplete())
-			{
-				break;
+				return i;
 			}
 
 			i++;
 		}
 
-		return indices;
+		return std::nullopt;
 	}
 
 	void VulkanDevice::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
@@ -579,7 +682,7 @@ namespace Hyperion
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = m_commandPool;
+		allocInfo.commandPool = m_transientCommandPool;
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
@@ -605,7 +708,7 @@ namespace Hyperion
 		vkQueueSubmit(m_graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(m_graphicsQueue_);
 
-		vkFreeCommandBuffers(m_device_, m_commandPool, 1, &commandBuffer);
+		vkFreeCommandBuffers(m_device_, m_transientCommandPool, 1, &commandBuffer);
 	}
 
 	void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset)
@@ -621,61 +724,61 @@ namespace Hyperion
 		endSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanDevice::copyBufferToImage(
-		VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount)
-	{
-		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	//void VulkanDevice::copyBufferToImage(
+	//	VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount)
+	//{
+	//	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-		VkBufferImageCopy region{};
-		region.bufferOffset = 0;
-		region.bufferRowLength = 0;
-		region.bufferImageHeight = 0;
+	//	VkBufferImageCopy region{};
+	//	region.bufferOffset = 0;
+	//	region.bufferRowLength = 0;
+	//	region.bufferImageHeight = 0;
 
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = layerCount;
+	//	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	//	region.imageSubresource.mipLevel = 0;
+	//	region.imageSubresource.baseArrayLayer = 0;
+	//	region.imageSubresource.layerCount = layerCount;
 
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { width, height, 1 };
+	//	region.imageOffset = { 0, 0, 0 };
+	//	region.imageExtent = { width, height, 1 };
 
-		vkCmdCopyBufferToImage(
-			commandBuffer,
-			buffer,
-			image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			1,
-			&region);
-		endSingleTimeCommands(commandBuffer);
-	}
+	//	vkCmdCopyBufferToImage(
+	//		commandBuffer,
+	//		buffer,
+	//		image,
+	//		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+	//		1,
+	//		&region);
+	//	endSingleTimeCommands(commandBuffer);
+	//}
 
-	void VulkanDevice::createImageWithInfo(
-		const VkImageCreateInfo& imageInfo,
-		VkMemoryPropertyFlags properties,
-		VkImage& image,
-		VkDeviceMemory& imageMemory)
-	{
-		if (vkCreateImage(m_device_, &imageInfo, m_allocator, &image) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create image!");
-		}
+	//void VulkanDevice::createImageWithInfo(
+	//	const VkImageCreateInfo& imageInfo,
+	//	VkMemoryPropertyFlags properties,
+	//	VkImage& image,
+	//	VkDeviceMemory& imageMemory)
+	//{
+	//	if (vkCreateImage(m_device_, &imageInfo, nullptr, &image) != VK_SUCCESS)
+	//	{
+	//		throw std::runtime_error("failed to create image!");
+	//	}
 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(m_device_, image, &memRequirements);
+	//	VkMemoryRequirements memRequirements;
+	//	vkGetImageMemoryRequirements(m_device_, image, &memRequirements);
 
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+	//	VkMemoryAllocateInfo allocInfo{};
+	//	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	//	allocInfo.allocationSize = memRequirements.size;
+	//	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(m_device_, &allocInfo, m_allocator, &imageMemory) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to allocate image memory!");
-		}
+	//	if (vkAllocateMemory(m_device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+	//	{
+	//		throw std::runtime_error("failed to allocate image memory!");
+	//	}
 
-		if (vkBindImageMemory(m_device_, image, imageMemory, 0) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to bind image memory!");
-		}
-	}
+	//	if (vkBindImageMemory(m_device_, image, imageMemory, 0) != VK_SUCCESS)
+	//	{
+	//		throw std::runtime_error("failed to bind image memory!");
+	//	}
+	//}
 }

@@ -3,7 +3,6 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-#include <Vulkan/vulkan.h>
 
 #include "Core/HyperionPCH.h"
 
@@ -14,7 +13,6 @@
 
 #include "Resources/MeshCache.h"
 
-#include "World/Camera.h"
 #include "World/World.h"
 
 namespace Hyperion
@@ -22,10 +20,13 @@ namespace Hyperion
 	class MeshPipeline
 	{
 	public:
-		void init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize);
+		void init(VulkanDevice* device, WindowSize frameBufferSize, const VkFormat& imageFormat, const VkFormat& depthFormat);
 		void cleanup();
 
 		void draw(VkCommandBuffer& commandBuffer, Entity& camera, World& world, const MeshCache& meshCache);
+
+	public:
+		VulkanPipeline pipeline{};
 
 	private:
 		struct PushConstants
@@ -36,13 +37,9 @@ namespace Hyperion
 		};
 
 	private:
-		void createGraphicsPipelineLayout();
-		void createGraphicsPipeline(VkRenderPass renderPass, WindowSize frameBufferSize);
+		void createGraphicsPipeline(WindowSize frameBufferSize, const VkFormat& imageFormat, const VkFormat& depthFormat);
 
 	private:
 		VulkanDevice* m_device = nullptr;
-
-		VulkanPipeline m_pipeline{};
-		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 	};
 }

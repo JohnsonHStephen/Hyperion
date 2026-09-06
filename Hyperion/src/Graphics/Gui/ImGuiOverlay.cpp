@@ -3,6 +3,8 @@
 #include "Core/Application.h"
 
 #include <GLFW/glfw3.h>
+#include <volk.h>
+#include <iostream>
 #include "imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_vulkan.h"
@@ -30,24 +32,27 @@ namespace Hyperion
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 
-
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)initInfo.Window->getNativeWindow(), true);
 		ImGui_ImplVulkan_InitInfo vulkanInitInfo = {};
+		vulkanInitInfo.ApiVersion = initInfo.ApiVersion;
 		vulkanInitInfo.Instance = initInfo.Instance;
 		vulkanInitInfo.PhysicalDevice = initInfo.PhysicalDevice;
 		vulkanInitInfo.Device = initInfo.Device;
 		vulkanInitInfo.QueueFamily = initInfo.QueueFamily;
 		vulkanInitInfo.Queue = initInfo.Queue;
 		vulkanInitInfo.PipelineCache = initInfo.PipelineCache;
-		vulkanInitInfo.DescriptorPool = initInfo.DescriptorPool;
 		vulkanInitInfo.MinImageCount = 2;
 		vulkanInitInfo.ImageCount = initInfo.ImageCount;
 		vulkanInitInfo.Allocator = initInfo.Allocator;
-		vulkanInitInfo.RenderPass = initInfo.RenderPass;
-		vulkanInitInfo.Subpass = 0;
-		vulkanInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		vulkanInitInfo.UseDynamicRendering = true;
+		vulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo = initInfo.PipelineRenderingCreateInfo;
+		vulkanInitInfo.PipelineInfoForViewports.PipelineRenderingCreateInfo = initInfo.PipelineRenderingCreateInfo;
 		vulkanInitInfo.CheckVkResultFn = check_vk_result;
+
+		vulkanInitInfo.DescriptorPool = VK_NULL_HANDLE;
+		vulkanInitInfo.DescriptorPoolSize = IMGUI_IMPL_VULKAN_MINIMUM_SAMPLED_IMAGE_POOL_SIZE;
+
 		ImGui_ImplVulkan_Init(&vulkanInitInfo);
 	}
 

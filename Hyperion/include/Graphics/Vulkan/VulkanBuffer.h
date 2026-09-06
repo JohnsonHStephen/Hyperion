@@ -2,8 +2,6 @@
 
 #include "Core/HyperionPCH.h"
 
-#include <Vulkan/vulkan.h>
-
 #include "Graphics/Vulkan/VulkanDevice.h"
 
 namespace Hyperion

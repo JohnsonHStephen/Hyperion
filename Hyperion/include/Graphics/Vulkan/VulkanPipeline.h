@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Vulkan/vulkan.h>
-
 #include "Core/HyperionPCH.h"
 
 #include "Graphics/Vulkan/VulkanDevice.h"
@@ -25,9 +23,9 @@ namespace Hyperion
 		VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
 		std::vector<VkDynamicState> dynamicStateEnables{};
 		VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
-		VkPipelineLayout pipelineLayout = nullptr;
-		VkRenderPass renderPass = nullptr;
-		uint32_t subpass = 0;
+		VkPipelineRenderingCreateInfo renderingInfo{};
+		VkPushConstantRange pushConstantRange{};
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	};
 
 	class VulkanPipeline
@@ -51,6 +49,9 @@ namespace Hyperion
 
 		void bind(VkCommandBuffer commandBuffer);
 
+		VkPipelineLayout layout() const { return m_pipelineLayout; }
+		VkPipeline pipeline() const { return m_graphicsPipeline; }
+
 		// Width and Height must be in pixels
 		static void defaultPipelineConfigInfo(
 			PipelineConfigInfo& configInfo, uint32_t width, uint32_t height);
@@ -58,6 +59,7 @@ namespace Hyperion
 	private:
 		static std::vector<char> readFile(const std::string& filename);
 
+		void createPipelineLayout(const PipelineConfigInfo& configInfo);
 		void createGraphicsPipeline(
 			const std::string& vertFilepath,
 			const std::string& fragFilepath,
@@ -69,9 +71,9 @@ namespace Hyperion
 		void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
 	private:
-		VulkanDevice* m_device = nullptr;
-		VkPipelineLayout	m_pipelineLayout = VK_NULL_HANDLE;
+		VulkanDevice*		m_device = nullptr;
 		VkPipeline			m_graphicsPipeline = VK_NULL_HANDLE;
+		VkPipelineLayout	m_pipelineLayout   = VK_NULL_HANDLE;
 		VkShaderModule		m_vertShaderModule = VK_NULL_HANDLE;
 		VkShaderModule		m_fragShaderModule = VK_NULL_HANDLE;
 	};

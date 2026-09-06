@@ -7,8 +7,6 @@ namespace Hyperion
 	class VulkanSwapChain
 	{
 	public:
-		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 		VulkanSwapChain() {}
 		~VulkanSwapChain() { cleanup(); }
 
@@ -20,15 +18,17 @@ namespace Hyperion
 					std::shared_ptr<VulkanSwapChain> previous = nullptr);
 		void cleanup();
 
-		VkFramebuffer getFrameBuffer(int index) const { return m_swapChainFramebuffers[index]; }
-		VkRenderPass getRenderPass() const { return m_renderPass; }
+		VkImage getImage(int index) const { return m_swapChainImages[index]; }
 		VkImageView getImageView(int index) const { return m_swapChainImageViews[index]; }
+		VkImage getDepthImage(int index) const { return m_depthImages[index]; }
+		VkImageView getDepthImageView(int index) const { return m_depthImageViews[index]; }
 		size_t imageCount() const { return m_swapChainImages.size(); }
 		VkFormat getSwapChainImageFormat() const { return m_swapChainImageFormat; }
+		const VkFormat& getSwapChainImageFormatPtr() const { return m_swapChainImageFormat; }
+		VkFormat getSwapChainDepthFormat() const { return m_swapChainDepthFormat; }
 		VkExtent2D getSwapChainExtent() const { return m_swapChainExtent; }
 		uint32_t width() const { return m_swapChainExtent.width; }
 		uint32_t height() const { return m_swapChainExtent.height; }
-		uint32_t frameIndex() const { return m_currentFrame; }
 
 		float extentAspectRatio() const
 		{
@@ -36,8 +36,8 @@ namespace Hyperion
 		}
 		VkFormat findDepthFormat();
 
-		VkResult acquireNextImage(uint32_t* imageIndex);
-		VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
+		VkResult acquireNextImage(uint32_t* imageIndex, VkSemaphore imageAvailableSemaphore);
+		VkResult queuePresentCommandBuffers(uint32_t* imageIndex, VkSemaphore renderFinished);
 
 		bool compareSwapFormats(const VulkanSwapChain& swapChain) const
 		{
@@ -49,9 +49,6 @@ namespace Hyperion
 		void createSwapChain();
 		void createImageViews();
 		void createDepthResources();
-		void createRenderPass();
-		void createFramebuffers();
-		void createSyncObjects();
 
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(
 			const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -64,11 +61,8 @@ namespace Hyperion
 		VkFormat	m_swapChainDepthFormat	= VK_FORMAT_UNDEFINED;
 		VkExtent2D	m_swapChainExtent{};
 
-		std::vector<VkFramebuffer>	m_swapChainFramebuffers{};
-		VkRenderPass				m_renderPass = VK_NULL_HANDLE;
-
 		std::vector<VkImage>		m_depthImages{};
-		std::vector<VkDeviceMemory>	m_depthImageMemorys{};
+		std::vector<VmaAllocation>	m_depthImageMemorys{};
 		std::vector<VkImageView>	m_depthImageViews{};
 		std::vector<VkImage>		m_swapChainImages{};
 		std::vector<VkImageView>	m_swapChainImageViews{};
@@ -78,11 +72,5 @@ namespace Hyperion
 
 		VkSwapchainKHR						m_swapChain		= VK_NULL_HANDLE;
 		std::shared_ptr<VulkanSwapChain>	m_oldSwapChain	= nullptr;
-
-		std::vector<VkSemaphore>	m_imageAvailableSemaphores{};
-		std::vector<VkSemaphore>	m_renderFinishedSemaphores{};
-		std::vector<VkFence>		m_inFlightFences{};
-		std::vector<VkFence>		m_imagesInFlight{};
-		size_t						m_currentFrame = 0;
 	};
 }

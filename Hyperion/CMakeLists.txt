@@ -7,7 +7,9 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(stduuid CONFIG REQUIRED)
-find_package(Vulkan REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
+find_package(volk CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 # Define a custom command to run the batch file
 add_custom_target(CompileShaders
@@ -28,6 +30,9 @@ elseif(PLATFORM_MACOS)
 target_compile_definitions(Hyperion PUBLIC PLATFORM_MACOS)
 endif()
 
+target_compile_definitions(Hyperion PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
+target_compile_definitions(Hyperion PRIVATE VK_NO_PROTOTYPES)
+
 add_subdirectory ("src")
 add_subdirectory ("include")
 add_subdirectory ("external")
@@ -37,8 +42,8 @@ set_property(TARGET Hyperion PROPERTY CXX_STANDARD 20)
 target_link_libraries(Hyperion PRIVATE EnTT::EnTT)
 target_link_libraries(Hyperion PRIVATE glfw)
 target_link_libraries(Hyperion PRIVATE glm::glm)
-target_link_libraries(Hyperion PRIVATE imgui::imgui)
 target_link_libraries(Hyperion PRIVATE stduuid)
-target_link_libraries(Hyperion PRIVATE Vulkan::Vulkan)
+target_link_libraries(Hyperion PRIVATE Vulkan::Headers GPUOpen::VulkanMemoryAllocator volk::volk volk::volk_headers)
+target_link_libraries(Hyperion PRIVATE imgui::imgui)
 
 # TODO: Add tests and install targets if needed.

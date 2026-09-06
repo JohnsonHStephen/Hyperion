@@ -22,10 +22,10 @@ namespace Hyperion
 
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
-		m_meshPipeline.init(&m_device, m_renderer.getSwapChainRenderPass(), m_window->getFramebufferPixelSize());
 		m_meshCache.init(m_device);
 
 		ImGuiOverlay::InitInfo initInfo{};
+		initInfo.ApiVersion = m_device.getInstanceVersion().Number;
 		initInfo.Window = m_window.get();
 		initInfo.Instance = m_device.getInstance();
 		initInfo.PhysicalDevice = m_device.physicalDevice();
@@ -33,10 +33,9 @@ namespace Hyperion
 		initInfo.QueueFamily = m_device.graphicsQueueFamily();
 		initInfo.Queue = m_device.graphicsQueue();
 		initInfo.PipelineCache = VK_NULL_HANDLE;
-		initInfo.DescriptorPool = m_device.descriptorPool();
 		initInfo.ImageCount = m_renderer.getImageCount();
-		initInfo.Allocator = m_device.allocator();
-		initInfo.RenderPass = m_renderer.getSwapChainRenderPass();
+		initInfo.Allocator = nullptr;
+		initInfo.PipelineRenderingCreateInfo = m_renderer.getSwapChainPipelineRenderingCreateInfo();
 
 		m_overlay.init(initInfo);
 
@@ -45,8 +44,8 @@ namespace Hyperion
 
 	Application::~Application()
 	{
+		m_overlay.cleanup();
 		m_meshCache.cleanup(m_device);
-		m_meshPipeline.cleanup();
 		m_renderer.cleanup();
 		m_device.cleanup();
 	}
@@ -62,7 +61,7 @@ namespace Hyperion
 
 			if (auto commandBuffer = m_renderer.beginFrame(m_window.get()))
 			{
-				m_renderer.beginSwapChainRenderPass(commandBuffer);
+				m_renderer.beginRendering(commandBuffer);
 				m_game->onRender();
 
 				auto primaryCameraOpt = m_game->getPrimaryCameraEntity();
@@ -71,14 +70,14 @@ namespace Hyperion
 				{
 					auto primaryCamera = primaryCameraOpt.value();
 					primaryCamera.getComponent<CameraComponent>().camera.setViewportSize(m_window->getWidth(), m_window->getHeight());
-					m_meshPipeline.draw(commandBuffer, primaryCamera, m_game->getWorld(), m_meshCache);
+					m_renderer.draw(commandBuffer, primaryCamera, m_game->getWorld(), m_meshCache);
 				}
 
 				m_overlay.begin();
 				m_game->onOverlay();
 				m_overlay.end(commandBuffer);
 
-				m_renderer.endSwapChainRenderPass(commandBuffer);
+				m_renderer.endRendering(commandBuffer);
 				m_renderer.endFrame(m_window.get());
 			}
 

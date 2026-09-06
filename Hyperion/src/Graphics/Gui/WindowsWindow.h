@@ -38,6 +38,8 @@ namespace Hyperion
 
 		WindowSize getFramebufferPixelSize() const override;
 
+		WindowGraphicsAdapterPtr getGraphicsAdapter() const override;
+
 		static const char** requiredInstanceExtensions(uint32_t& extensionCount);
 
 	private:

@@ -7,22 +7,20 @@
 
 namespace Hyperion
 {
-	void MeshPipeline::init(VulkanDevice* device, VkRenderPass renderPass, WindowSize frameBufferSize)
+	void MeshPipeline::init(VulkanDevice* device, WindowSize frameBufferSize, const VkFormat& imageFormat, const VkFormat& depthFormat)
 	{
 		m_device = device;
 
-		createGraphicsPipelineLayout();
-		createGraphicsPipeline(renderPass, frameBufferSize);
+		createGraphicsPipeline(frameBufferSize, imageFormat, depthFormat);
 	}
 
 	void MeshPipeline::cleanup()
 	{
-		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
 	void MeshPipeline::draw(VkCommandBuffer& commandBuffer, Entity& camera, World& world, const MeshCache& meshCache)
 	{
-		m_pipeline.bind(commandBuffer);
+		pipeline.bind(commandBuffer);
 
 		auto meshEntities = world.getAllEntitiesWith<TransformComponent, MeshComponent>();
 		for (auto& meshEntity : meshEntities)
@@ -37,7 +35,7 @@ namespace Hyperion
 
 			vkCmdPushConstants(
 				commandBuffer,
-				m_pipelineLayout,
+				pipeline.layout(),
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(PushConstants),
@@ -54,27 +52,7 @@ namespace Hyperion
 
 	}
 
-	void MeshPipeline::createGraphicsPipelineLayout()
-	{
-		VkPushConstantRange pushConstantRange{};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(PushConstants);
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0;
-		pipelineLayoutInfo.pSetLayouts = nullptr;
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-		if (vkCreatePipelineLayout(m_device->device(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
-	}
-
-	void MeshPipeline::createGraphicsPipeline(VkRenderPass renderPass, WindowSize frameBufferSize)
+	void MeshPipeline::createGraphicsPipeline(WindowSize frameBufferSize, const VkFormat& imageFormat, const VkFormat& depthFormat)
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
@@ -87,10 +65,21 @@ namespace Hyperion
 
 		PipelineConfigInfo pipelineConfig{};
 		VulkanPipeline::defaultPipelineConfigInfo(pipelineConfig, frameBufferSize.width, frameBufferSize.height);
-		pipelineConfig.renderPass = renderPass;
-		pipelineConfig.pipelineLayout = m_pipelineLayout;
 
-		m_pipeline.init(
+		pipelineConfig.pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pipelineConfig.pushConstantRange.offset = 0;
+		pipelineConfig.pushConstantRange.size = sizeof(PushConstants);
+
+		pipelineConfig.pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineConfig.pipelineLayoutInfo.setLayoutCount = 0;
+		pipelineConfig.pipelineLayoutInfo.pSetLayouts = nullptr;
+		pipelineConfig.pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineConfig.pipelineLayoutInfo.pPushConstantRanges = &pipelineConfig.pushConstantRange;
+
+		pipelineConfig.renderingInfo.pColorAttachmentFormats = &imageFormat;
+		pipelineConfig.renderingInfo.depthAttachmentFormat = depthFormat;
+
+		pipeline.init(
 			m_device,
 			"../../../../Hyperion/include/Graphics/shaders/vert.spv",
 			"../../../../Hyperion/include/Graphics/shaders/frag.spv",

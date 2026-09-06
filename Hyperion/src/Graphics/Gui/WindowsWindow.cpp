@@ -5,6 +5,8 @@
 #include "Events/MouseEvent.h"
 #include "Events/WindowEvent.h"
 
+#include "Graphics/Gui/Adapters/GLFWWindowAdapter.h"
+
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -182,5 +184,10 @@ namespace Hyperion
 	const char** WindowsWindow::requiredInstanceExtensions(uint32_t& extensionCount)
 	{
 		return glfwGetRequiredInstanceExtensions(&extensionCount);
+	}
+
+	WindowGraphicsAdapterPtr WindowsWindow::getGraphicsAdapter() const
+	{
+		return std::make_unique<GLFWWindowAdapter>(m_Window);
 	}
 }

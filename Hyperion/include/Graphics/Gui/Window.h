@@ -2,6 +2,7 @@
 
 #include "Core/HyperionPCH.h"
 #include "Events/Event.h"
+#include "Graphics/Gui/Adapters/WindowGraphicsAdapter.h"
 
 namespace Hyperion
 {
@@ -55,5 +56,8 @@ namespace Hyperion
 		virtual NativeWindowInfo getNativeWindowInfo() const = 0;
 
 		virtual WindowSize getFramebufferPixelSize() const = 0;
+
+		// Get graphics adapter for creating platform-specific graphics surfaces
+		virtual WindowGraphicsAdapterPtr getGraphicsAdapter() const = 0;
 	};
 }

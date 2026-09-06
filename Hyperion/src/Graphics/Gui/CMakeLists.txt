@@ -13,3 +13,5 @@ target_sources (Hyperion
 		FILES
 			"WindowsWindow.h"
 )
+
+add_subdirectory ("Adapters")

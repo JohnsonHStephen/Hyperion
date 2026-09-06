@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include "Graphics/Gui/Window.h"
 
 namespace Hyperion
@@ -12,16 +10,16 @@ namespace Hyperion
 		struct InitInfo
 		{
 			Window* Window;
+			uint32_t ApiVersion;
 			VkInstance Instance;
 			VkPhysicalDevice PhysicalDevice;
 			VkDevice Device;
 			uint32_t QueueFamily;
 			VkQueue Queue;
 			VkPipelineCache PipelineCache;
-			VkDescriptorPool DescriptorPool;
 			uint32_t ImageCount;
 			VkAllocationCallbacks* Allocator;
-			VkRenderPass RenderPass;
+			VkPipelineRenderingCreateInfo PipelineRenderingCreateInfo;
 		};
 
 	public:

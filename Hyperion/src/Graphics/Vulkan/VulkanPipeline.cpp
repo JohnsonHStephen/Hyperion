@@ -14,8 +14,8 @@ namespace Hyperion
 		uint32_t binding)
 	{
 		m_device = device;
-		m_pipelineLayout = configInfo.pipelineLayout;
 
+		createPipelineLayout(configInfo);
 		createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, bindingDescriptions, attributeDescriptions, binding);
 	}
 
@@ -24,6 +24,7 @@ namespace Hyperion
 		vkDestroyShaderModule(m_device->device(), m_fragShaderModule, nullptr);
 		vkDestroyShaderModule(m_device->device(), m_vertShaderModule, nullptr);
 		vkDestroyPipeline(m_device->device(), m_graphicsPipeline, nullptr);
+		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
 	}
 
 	void VulkanPipeline::bind(VkCommandBuffer commandBuffer)
@@ -50,9 +51,9 @@ namespace Hyperion
 
 		configInfo.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		configInfo.viewportInfo.viewportCount = 1;
-		configInfo.viewportInfo.pViewports = &configInfo.viewport;
+		configInfo.viewportInfo.pViewports = nullptr;
 		configInfo.viewportInfo.scissorCount = 1;
-		configInfo.viewportInfo.pScissors = &configInfo.scissor;
+		configInfo.viewportInfo.pScissors = nullptr;
 
 		configInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		configInfo.rasterizationInfo.depthClampEnable = VK_FALSE;
@@ -106,6 +107,11 @@ namespace Hyperion
 		configInfo.depthStencilInfo.front = {};  // Optional
 		configInfo.depthStencilInfo.back = {};   // Optional
 
+		configInfo.renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+		configInfo.renderingInfo.colorAttachmentCount = 1;
+		configInfo.renderingInfo.pColorAttachmentFormats = nullptr;
+		configInfo.renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT; // Assuming depth format is D32_SFLOAT
+
 		configInfo.dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		configInfo.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
@@ -134,6 +140,14 @@ namespace Hyperion
 		return buffer;
 	}
 
+	void VulkanPipeline::createPipelineLayout(const PipelineConfigInfo& configInfo)
+	{
+		if (vkCreatePipelineLayout(m_device->device(), &configInfo.pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to create pipeline layout!");
+		}
+	}
+
 	void VulkanPipeline::createGraphicsPipeline(
 		const std::string& vertFilepath,
 		const std::string& fragFilepath,
@@ -148,7 +162,7 @@ namespace Hyperion
 		createShaderModule(vertShaderCode, &m_vertShaderModule);
 		createShaderModule(fragShaderCode, &m_fragShaderModule);
 
-		VkPipelineShaderStageCreateInfo shaderStages[2];
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages(2);
 
 		// Vertex Shader Stage
 		shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -176,8 +190,9 @@ namespace Hyperion
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = shaderStages;
+		pipelineInfo.pNext = &configInfo.renderingInfo;
+		pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+		pipelineInfo.pStages = shaderStages.data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
 		pipelineInfo.pViewportState = &configInfo.viewportInfo;
@@ -186,9 +201,8 @@ namespace Hyperion
 		pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
 		pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 		pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
-		pipelineInfo.layout = configInfo.pipelineLayout;
-		pipelineInfo.renderPass = configInfo.renderPass;
-		pipelineInfo.subpass = configInfo.subpass;
+		pipelineInfo.layout = m_pipelineLayout;
+		pipelineInfo.renderPass = VK_NULL_HANDLE;
 
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Vulkan/vulkan.h>
+#include <volk.h>
+#include <vma/vk_mem_alloc.h>
 
 #include "Core/HyperionPCH.h"
 
@@ -17,12 +18,13 @@ namespace Hyperion
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
-	struct QueueFamilyIndices
+	struct InstanceVersion
 	{
-		std::optional<uint32_t> graphicsFamily;
-		std::optional<uint32_t> presentFamily;
+		uint32_t Number = 0;
 
-		bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
+		int Major() const { return VK_API_VERSION_MAJOR(Number); }
+		int Minor() const { return VK_API_VERSION_MINOR(Number); }
+		int Patch() const { return VK_API_VERSION_PATCH(Number); }
 	};
 
 	class VulkanDevice
@@ -33,6 +35,9 @@ namespace Hyperion
 #else
 		const bool enableValidationLayers = true;
 #endif
+		VkPhysicalDeviceProperties properties;
+
+	public:
 		VulkanDevice() = default;
 		~VulkanDevice() = default;
 
@@ -46,19 +51,17 @@ namespace Hyperion
 		void cleanup();
 
 		VkInstance getInstance() const { return m_instance; }
-		VkCommandPool getCommandPool() const { return m_commandPool; }
-		VkDescriptorPool descriptorPool() const { return m_descriptorPool; }
 		VkDevice device() const { return m_device_; }
 		VkPhysicalDevice physicalDevice() const { return m_physicalDevice; }
 		VkSurfaceKHR surface() const { return m_surface_; }
 		uint32_t graphicsQueueFamily() const { return m_graphicsQueueFamilyIndex; }
 		VkQueue graphicsQueue() const { return m_graphicsQueue_; }
-		VkQueue presentQueue() const { return m_presentQueue_; }
-		VkAllocationCallbacks* allocator() const { return m_allocator; }
+		VmaAllocator allocator() const { return m_vmaAllocator; }
+		VkSemaphore timelineSemaphore() const { return m_timelineSemaphore; }
 
 		SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(m_physicalDevice); }
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(m_physicalDevice); }
+		std::optional<uint32_t> findPhysicalQueueFamilies() { return findQueueFamilies(m_physicalDevice); }
 		VkFormat findSupportedFormat(
 			const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
@@ -71,16 +74,20 @@ namespace Hyperion
 		VkCommandBuffer beginSingleTimeCommands();
 		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset = 0);
-		void copyBufferToImage(
-			VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+		//void copyBufferToImage(
+		//	VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
 
-		void createImageWithInfo(
-			const VkImageCreateInfo& imageInfo,
-			VkMemoryPropertyFlags properties,
-			VkImage& image,
-			VkDeviceMemory& imageMemory);
+		//void createImageWithInfo(
+		//	const VkImageCreateInfo& imageInfo,
+		//	VkMemoryPropertyFlags properties,
+		//	VkImage& image,
+		//	VkDeviceMemory& imageMemory);
 
-		VkPhysicalDeviceProperties properties;
+		VkCommandPool createCommandPool(VkCommandPoolCreateFlags flags = 0);
+
+		void waitForTimelineSemaphore(const uint64_t value, uint64_t timeout = UINT64_MAX);
+
+		InstanceVersion getInstanceVersion() const;
 
 	private:
 		void createInstance(const ApplicationInfo& appInfo);
@@ -88,8 +95,10 @@ namespace Hyperion
 		void createSurface(Window* window);
 		void pickPhysicalDevice();
 		void createLogicalDevice();
-		void createCommandPool();
-		void createDescriptorPool();
+		void initializeVMA();
+		void createTimelineSemaphore();
+
+		void findInstanceVersion();
 
 		std::vector<VkPhysicalDevice> getPhysicalDevices();
 		int rateDeviceSuitability(VkPhysicalDevice device);
@@ -98,25 +107,27 @@ namespace Hyperion
 		bool requiredExtensionsAvailable(const std::vector<const char*>& requiredExtensions);
 
 		bool checkValidationLayerSupport() const;
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+		std::optional<uint32_t> findQueueFamilies(VkPhysicalDevice device);
 		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
 	private:
+		InstanceVersion m_instanceVersion;
+
 		VkInstance m_instance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-		VkCommandPool m_commandPool = VK_NULL_HANDLE;
-		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+		VkCommandPool m_transientCommandPool = VK_NULL_HANDLE;
 
 		VkDevice m_device_ = VK_NULL_HANDLE;
 		VkSurfaceKHR m_surface_ = VK_NULL_HANDLE;
 		VkQueue m_graphicsQueue_ = VK_NULL_HANDLE;
-		VkQueue m_presentQueue_ = VK_NULL_HANDLE;
 		uint32_t m_graphicsQueueFamilyIndex = (uint32_t)-1;
-		VkAllocationCallbacks* m_allocator = nullptr;
+		VmaAllocator m_vmaAllocator = nullptr;
+
+		VkSemaphore					m_timelineSemaphore = VK_NULL_HANDLE;
 
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
-		const std::vector<const char*> m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		std::vector<const char*> m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	};
 }
