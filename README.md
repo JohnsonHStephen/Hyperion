@@ -25,7 +25,7 @@ Hyperion is a **learning-first game engine** being built to:
 
 # Clone the repository
 ```bash
-git clone https://github.com/your-username/hyperion.git
+git clone https://github.com/JohnsonHStephen/hyperion.git
 ```
 
 # Configure and build the project
