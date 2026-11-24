@@ -31,7 +31,7 @@ namespace Hyperion
 			auto meshId = meshEntity.getComponent<MeshComponent>();
 			pushConstants.transform = transform.getTransform();
 			pushConstants.normal = transform.getNormal();
-			pushConstants.projView = camera.getComponent<CameraComponent>().camera.getProjection() * camera.getComponent<TransformComponent>().getTransform();
+			pushConstants.projView = camera.getComponent<CameraComponent>().camera.getProjection() * camera.getComponent<TransformComponent>().getTransform(); // TODO: Create a cache of projection and transform matricies so that multiple active cameras can be used without recalculating the projection and transform matricies for each mesh entity
 
 			vkCmdPushConstants(
 				commandBuffer,

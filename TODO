@@ -1,1 +1,2 @@
-- move camera to camera components (perspective camera, orthographic camera, camera projections)
+- Cache many matricies for better camera swapping performance
+- support external assets (textures, models, shaders, etc.)

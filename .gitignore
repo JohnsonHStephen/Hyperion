@@ -366,3 +366,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /vcpkg_installed
 *.spv
+
+# CMake cache files
+CMakeFiles/
