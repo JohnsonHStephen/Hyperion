@@ -7,6 +7,8 @@
 #include "World/Components.h"
 #include "World/Entity.h"
 
+#include <imgui.h>
+
 Hyperion::ApplicationInfo SandboxGame::getAppInfo()
 {
 	Hyperion::ApplicationInfo appInfo{};
@@ -128,7 +130,11 @@ void SandboxGame::onEvent(Hyperion::Event & e)
 }
 
 void SandboxGame::onOverlay()
-{}
+{
+	ImGui::Begin("Sandbox Game Overlay");
+	ImGui::Text("Hello from Sandbox Game!");
+	ImGui::End();
+}
 
 void SandboxGame::onRender()
 {}
