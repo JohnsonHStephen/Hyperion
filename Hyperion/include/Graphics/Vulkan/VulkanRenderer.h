@@ -12,9 +12,9 @@ namespace Hyperion
 	struct FrameResources
 	{
 		uint32_t			lastFrameId = 0;
-		VkCommandPool		commandPool = nullptr;
-		VkCommandBuffer		commandBuffer = nullptr;
-		VkSemaphore			imageAvailableSemaphore = nullptr;
+		VkCommandPool		commandPool = VK_NULL_HANDLE;
+		VkCommandBuffer		commandBuffer = VK_NULL_HANDLE;
+		VkSemaphore			imageAvailableSemaphore = VK_NULL_HANDLE;
 	};
 
 	class VulkanRenderer

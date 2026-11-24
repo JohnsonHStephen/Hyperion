@@ -19,24 +19,24 @@ namespace Hyperion
 
 		for (FrameResources& frameResource : m_frameResources)
 		{
-			if (frameResource.imageAvailableSemaphore != nullptr)
+			if (frameResource.imageAvailableSemaphore != VK_NULL_HANDLE)
 			{
-				vkDestroySemaphore(m_device->device(), frameResource.imageAvailableSemaphore, nullptr);
-				frameResource.imageAvailableSemaphore = nullptr;
+				vkDestroySemaphore(m_device->device(), frameResource.imageAvailableSemaphore, VK_NULL_HANDLE);
+				frameResource.imageAvailableSemaphore = VK_NULL_HANDLE;
 			}
 
-			if (frameResource.commandPool != nullptr)
+			if (frameResource.commandPool != VK_NULL_HANDLE)
 			{
-				vkDestroyCommandPool(m_device->device(), frameResource.commandPool, nullptr);
-				frameResource.commandPool = nullptr;
+				vkDestroyCommandPool(m_device->device(), frameResource.commandPool, VK_NULL_HANDLE);
+				frameResource.commandPool = VK_NULL_HANDLE;
 			}
 		}
 
 		for (VkSemaphore& semaphore : m_renderFinishedSemaphore)
 		{
-			if (semaphore != nullptr)
+			if (semaphore != VK_NULL_HANDLE)
 			{
-				vkDestroySemaphore(m_device->device(), semaphore, nullptr);
+				vkDestroySemaphore(m_device->device(), semaphore, VK_NULL_HANDLE);
 			}
 		}
 		m_renderFinishedSemaphore.clear();
@@ -352,7 +352,7 @@ namespace Hyperion
 
 		for (FrameResources &resource : m_frameResources)
 		{
-			if (vkCreateSemaphore(m_device->device(), &semaphoreInfo, nullptr, &resource.imageAvailableSemaphore) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_device->device(), &semaphoreInfo, VK_NULL_HANDLE, &resource.imageAvailableSemaphore) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create image-available semaphore");
 			}
@@ -361,7 +361,7 @@ namespace Hyperion
 		m_renderFinishedSemaphore.resize(m_swapChain->imageCount());
 		for (VkSemaphore& semaphore : m_renderFinishedSemaphore)
 		{
-			if (vkCreateSemaphore(m_device->device(), &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_device->device(), &semaphoreInfo, VK_NULL_HANDLE, &semaphore) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create render-complete semaphore");
 			}

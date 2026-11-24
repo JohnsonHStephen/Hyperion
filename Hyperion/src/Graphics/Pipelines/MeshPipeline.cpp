@@ -72,7 +72,7 @@ namespace Hyperion
 
 		pipelineConfig.pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineConfig.pipelineLayoutInfo.setLayoutCount = 0;
-		pipelineConfig.pipelineLayoutInfo.pSetLayouts = nullptr;
+		pipelineConfig.pipelineLayoutInfo.pSetLayouts = VK_NULL_HANDLE;
 		pipelineConfig.pipelineLayoutInfo.pushConstantRangeCount = 1;
 		pipelineConfig.pipelineLayoutInfo.pPushConstantRanges = &pipelineConfig.pushConstantRange;
 

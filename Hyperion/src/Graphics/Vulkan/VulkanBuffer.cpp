@@ -17,8 +17,8 @@ namespace Hyperion
 
 	void VulkanBuffer::cleanup(const VulkanDevice& device) const
 	{
-		vkDestroyBuffer(device.device(), m_buffer, nullptr);
-		vkFreeMemory(device.device(), m_bufferMemory, nullptr);
+		vkDestroyBuffer(device.device(), m_buffer, VK_NULL_HANDLE);
+		vkFreeMemory(device.device(), m_bufferMemory, VK_NULL_HANDLE);
 	}
 
 	void VulkanBuffer::setData(const VulkanDevice& device, const void* data, VkDeviceSize size, VkDeviceSize offset) const

@@ -19,19 +19,19 @@ namespace Hyperion
 	{
 		for (auto imageView : m_swapChainImageViews)
 		{
-			vkDestroyImageView(m_device->device(), imageView, nullptr);
+			vkDestroyImageView(m_device->device(), imageView, VK_NULL_HANDLE);
 		}
 		m_swapChainImageViews.clear();
 
-		if (m_swapChain != nullptr)
+		if (m_swapChain != VK_NULL_HANDLE)
 		{
-			vkDestroySwapchainKHR(m_device->device(), m_swapChain, nullptr);
-			m_swapChain = nullptr;
+			vkDestroySwapchainKHR(m_device->device(), m_swapChain, VK_NULL_HANDLE);
+			m_swapChain = VK_NULL_HANDLE;
 		}
 
 		for (int i = 0; i < m_depthImages.size(); i++)
 		{
-			vkDestroyImageView(m_device->device(), m_depthImageViews[i], nullptr);
+			vkDestroyImageView(m_device->device(), m_depthImageViews[i], VK_NULL_HANDLE);
 			vmaDestroyImage(m_device->allocator(), m_depthImages[i], m_depthImageMemorys[i]);
 		}
 	}
@@ -108,12 +108,12 @@ namespace Hyperion
 
 		createInfo.oldSwapchain = m_oldSwapChain == nullptr ? VK_NULL_HANDLE : m_oldSwapChain->m_swapChain;
 
-		if (vkCreateSwapchainKHR(m_device->device(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(m_device->device(), &createInfo, VK_NULL_HANDLE, &m_swapChain) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create swap chain!");
 		}
 
-		vkGetSwapchainImagesKHR(m_device->device(), m_swapChain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(m_device->device(), m_swapChain, &imageCount, VK_NULL_HANDLE);
 		m_swapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(m_device->device(), m_swapChain, &imageCount, m_swapChainImages.data());
 
@@ -141,7 +141,7 @@ namespace Hyperion
 			viewInfo.subresourceRange.baseArrayLayer = 0;
 			viewInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(m_device->device(), &viewInfo, nullptr, &m_swapChainImageViews[i]) !=
+			if (vkCreateImageView(m_device->device(), &viewInfo, VK_NULL_HANDLE, &m_swapChainImageViews[i]) !=
 				VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create texture image view!");
@@ -179,7 +179,7 @@ namespace Hyperion
 
 		for (int i = 0; i < m_depthImages.size(); i++)
 		{
-			if (vmaCreateImage(m_device->allocator(), &imageInfo, &allocInfo, &m_depthImages[i], &m_depthImageMemorys[i], nullptr) != VK_SUCCESS)
+			if (vmaCreateImage(m_device->allocator(), &imageInfo, &allocInfo, &m_depthImages[i], &m_depthImageMemorys[i], VK_NULL_HANDLE) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create depth image!");
 			}
@@ -195,7 +195,7 @@ namespace Hyperion
 			viewInfo.subresourceRange.baseArrayLayer = 0;
 			viewInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(m_device->device(), &viewInfo, nullptr, &m_depthImageViews[i]) != VK_SUCCESS)
+			if (vkCreateImageView(m_device->device(), &viewInfo, VK_NULL_HANDLE, &m_depthImageViews[i]) != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to create texture image view!");
 			}

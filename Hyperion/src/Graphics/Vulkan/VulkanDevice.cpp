@@ -77,18 +77,18 @@ namespace Hyperion
 	{
 		vmaDestroyAllocator(m_vmaAllocator);
 
-		vkDestroySemaphore(m_device_, m_timelineSemaphore, nullptr);
+		vkDestroySemaphore(m_device_, m_timelineSemaphore, VK_NULL_HANDLE);
 
-		vkDestroyDevice(m_device_, nullptr);
+		vkDestroyDevice(m_device_, VK_NULL_HANDLE);
 
 		if (enableValidationLayers)
 		{
-			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, VK_NULL_HANDLE);
 		}
 
-		vkDestroySurfaceKHR(m_instance, m_surface_, nullptr);
+		vkDestroySurfaceKHR(m_instance, m_surface_, VK_NULL_HANDLE);
 		if (m_instance != VK_NULL_HANDLE)
-			vkDestroyInstance(m_instance, nullptr);
+			vkDestroyInstance(m_instance, VK_NULL_HANDLE);
 
 		volkFinalize();
 	}
@@ -153,10 +153,10 @@ namespace Hyperion
 		else
 		{
 			createInfo.enabledLayerCount = 0;
-			createInfo.pNext = nullptr;
+			createInfo.pNext = VK_NULL_HANDLE;
 		}
 
-		if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
+		if (vkCreateInstance(&createInfo, VK_NULL_HANDLE, &m_instance) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
@@ -169,7 +169,7 @@ namespace Hyperion
 		if (!enableValidationLayers) return;
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
 		populateDebugMessengerCreateInfo(createInfo);
-		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+		if (createDebugUtilsMessengerEXT(m_instance, &createInfo, VK_NULL_HANDLE, &m_debugMessenger) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to set up debug messenger!");
 		}
@@ -226,7 +226,7 @@ namespace Hyperion
 
 		VkPhysicalDeviceVulkan14Features deviceFeatures14 = {};
 		deviceFeatures14.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
-		deviceFeatures14.pNext = nullptr;
+		deviceFeatures14.pNext = VK_NULL_HANDLE;
 
 		VkPhysicalDeviceVulkan13Features deviceFeatures13 = {};
 		deviceFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
@@ -250,11 +250,11 @@ namespace Hyperion
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-		createInfo.pEnabledFeatures = nullptr;
+		createInfo.pEnabledFeatures = VK_NULL_HANDLE;
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
-		if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device_) != VK_SUCCESS)
+		if (vkCreateDevice(m_physicalDevice, &createInfo, VK_NULL_HANDLE, &m_device_) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create logical device!");
 		}
@@ -296,7 +296,7 @@ namespace Hyperion
 			poolInfo.flags = flags;
 
 		VkCommandPool commandPool;
-		if (vkCreateCommandPool(m_device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+		if (vkCreateCommandPool(m_device_, &poolInfo, VK_NULL_HANDLE, &commandPool) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create command pool!");
 		}
@@ -336,7 +336,7 @@ namespace Hyperion
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		semaphoreInfo.pNext = &semaphoreTypeInfo;
 
-		if (vkCreateSemaphore(m_device_, &semaphoreInfo, nullptr, &m_timelineSemaphore) != VK_SUCCESS)
+		if (vkCreateSemaphore(m_device_, &semaphoreInfo, VK_NULL_HANDLE, &m_timelineSemaphore) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create synchronization objects for a frame!");
 		}
@@ -365,7 +365,7 @@ namespace Hyperion
 	std::vector<VkPhysicalDevice> VulkanDevice::getPhysicalDevices()
 	{
 		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+		vkEnumeratePhysicalDevices(m_instance, &deviceCount, VK_NULL_HANDLE);
 
 		if (deviceCount == 0)
 		{
@@ -386,7 +386,7 @@ namespace Hyperion
 
 		VkPhysicalDeviceVulkan14Features supportedFeatures14 = {};
 		supportedFeatures14.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
-		supportedFeatures14.pNext = nullptr;
+		supportedFeatures14.pNext = VK_NULL_HANDLE;
 		VkPhysicalDeviceVulkan13Features supportedFeatures13 = {};
 		supportedFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
 		supportedFeatures13.pNext = &supportedFeatures14;
@@ -436,12 +436,12 @@ namespace Hyperion
 	bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
 	{
 		uint32_t extensionCount;
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+		vkEnumerateDeviceExtensionProperties(device, VK_NULL_HANDLE, &extensionCount, VK_NULL_HANDLE);
 
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(
 			device,
-			nullptr,
+			VK_NULL_HANDLE,
 			&extensionCount,
 			availableExtensions.data());
 
@@ -480,9 +480,9 @@ namespace Hyperion
 	bool VulkanDevice::requiredExtensionsAvailable(const std::vector<const char*>& requiredExtensions)
 	{
 		uint32_t extensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+		vkEnumerateInstanceExtensionProperties(VK_NULL_HANDLE, &extensionCount, VK_NULL_HANDLE);
 		std::vector<VkExtensionProperties> extensions(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+		vkEnumerateInstanceExtensionProperties(VK_NULL_HANDLE, &extensionCount, extensions.data());
 
 		std::vector<const char*> missingExtensions;
 		for (const auto& requiredExtension : requiredExtensions)
@@ -512,7 +512,7 @@ namespace Hyperion
 	bool VulkanDevice::checkValidationLayerSupport() const
 	{
 		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+		vkEnumerateInstanceLayerProperties(&layerCount, VK_NULL_HANDLE);
 
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
@@ -542,7 +542,7 @@ namespace Hyperion
 	std::optional<uint32_t> VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
 	{
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, VK_NULL_HANDLE);
 
 		std::vector<VkQueueFamilyProperties2> queueFamilies(queueFamilyCount, {.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2});
 		vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, queueFamilies.data());
@@ -574,7 +574,7 @@ namespace Hyperion
 			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = debugCallback;
-		createInfo.pUserData = nullptr;  // Optional
+		createInfo.pUserData = VK_NULL_HANDLE;  // Optional
 	}
 
 	SwapChainSupportDetails VulkanDevice::querySwapChainSupport(VkPhysicalDevice device)
@@ -583,7 +583,7 @@ namespace Hyperion
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface_, &details.capabilities);
 
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface_, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface_, &formatCount, VK_NULL_HANDLE);
 
 		if (formatCount != 0)
 		{
@@ -592,7 +592,7 @@ namespace Hyperion
 		}
 
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface_, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface_, &presentModeCount, VK_NULL_HANDLE);
 
 		if (presentModeCount != 0)
 		{
@@ -656,7 +656,7 @@ namespace Hyperion
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateBuffer(m_device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+		if (vkCreateBuffer(m_device_, &bufferInfo, VK_NULL_HANDLE, &buffer) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create vertex buffer!");
 		}
@@ -669,7 +669,7 @@ namespace Hyperion
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(m_device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+		if (vkAllocateMemory(m_device_, &allocInfo, VK_NULL_HANDLE, &bufferMemory) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to allocate vertex buffer memory!");
 		}
@@ -758,7 +758,7 @@ namespace Hyperion
 	//	VkImage& image,
 	//	VkDeviceMemory& imageMemory)
 	//{
-	//	if (vkCreateImage(m_device_, &imageInfo, nullptr, &image) != VK_SUCCESS)
+	//	if (vkCreateImage(m_device_, &imageInfo, VK_NULL_HANDLE, &image) != VK_SUCCESS)
 	//	{
 	//		throw std::runtime_error("failed to create image!");
 	//	}
@@ -771,7 +771,7 @@ namespace Hyperion
 	//	allocInfo.allocationSize = memRequirements.size;
 	//	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	//	if (vkAllocateMemory(m_device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+	//	if (vkAllocateMemory(m_device_, &allocInfo, VK_NULL_HANDLE, &imageMemory) != VK_SUCCESS)
 	//	{
 	//		throw std::runtime_error("failed to allocate image memory!");
 	//	}

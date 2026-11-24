@@ -21,10 +21,10 @@ namespace Hyperion
 
 	void VulkanPipeline::cleanup()
 	{
-		vkDestroyShaderModule(m_device->device(), m_fragShaderModule, nullptr);
-		vkDestroyShaderModule(m_device->device(), m_vertShaderModule, nullptr);
-		vkDestroyPipeline(m_device->device(), m_graphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
+		vkDestroyShaderModule(m_device->device(), m_fragShaderModule, VK_NULL_HANDLE);
+		vkDestroyShaderModule(m_device->device(), m_vertShaderModule, VK_NULL_HANDLE);
+		vkDestroyPipeline(m_device->device(), m_graphicsPipeline, VK_NULL_HANDLE);
+		vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, VK_NULL_HANDLE);
 	}
 
 	void VulkanPipeline::bind(VkCommandBuffer commandBuffer)
@@ -51,9 +51,9 @@ namespace Hyperion
 
 		configInfo.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		configInfo.viewportInfo.viewportCount = 1;
-		configInfo.viewportInfo.pViewports = nullptr;
+		configInfo.viewportInfo.pViewports = VK_NULL_HANDLE;
 		configInfo.viewportInfo.scissorCount = 1;
-		configInfo.viewportInfo.pScissors = nullptr;
+		configInfo.viewportInfo.pScissors = VK_NULL_HANDLE;
 
 		configInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		configInfo.rasterizationInfo.depthClampEnable = VK_FALSE;
@@ -71,7 +71,7 @@ namespace Hyperion
 		configInfo.multisampleInfo.sampleShadingEnable = VK_FALSE;
 		configInfo.multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 		configInfo.multisampleInfo.minSampleShading = 1.0f;           // Optional
-		configInfo.multisampleInfo.pSampleMask = nullptr;             // Optional
+		configInfo.multisampleInfo.pSampleMask = VK_NULL_HANDLE;      // Optional
 		configInfo.multisampleInfo.alphaToCoverageEnable = VK_FALSE;  // Optional
 		configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
 
@@ -109,7 +109,7 @@ namespace Hyperion
 
 		configInfo.renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
 		configInfo.renderingInfo.colorAttachmentCount = 1;
-		configInfo.renderingInfo.pColorAttachmentFormats = nullptr;
+		configInfo.renderingInfo.pColorAttachmentFormats = VK_NULL_HANDLE;
 		configInfo.renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT; // Assuming depth format is D32_SFLOAT
 
 		configInfo.dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
@@ -142,7 +142,7 @@ namespace Hyperion
 
 	void VulkanPipeline::createPipelineLayout(const PipelineConfigInfo& configInfo)
 	{
-		if (vkCreatePipelineLayout(m_device->device(), &configInfo.pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		if (vkCreatePipelineLayout(m_device->device(), &configInfo.pipelineLayoutInfo, VK_NULL_HANDLE, &m_pipelineLayout) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
@@ -169,16 +169,16 @@ namespace Hyperion
 		shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 		shaderStages[0].module = m_vertShaderModule;
 		shaderStages[0].pName = "main";
-		shaderStages[0].pNext = nullptr;
-		shaderStages[0].pSpecializationInfo = nullptr;
+		shaderStages[0].pNext = VK_NULL_HANDLE;
+		shaderStages[0].pSpecializationInfo = VK_NULL_HANDLE;
 
 		// Frament Shader Stage
 		shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		shaderStages[1].module = m_fragShaderModule;
 		shaderStages[1].pName = "main";
-		shaderStages[1].pNext = nullptr;
-		shaderStages[1].pSpecializationInfo = nullptr;
+		shaderStages[1].pNext = VK_NULL_HANDLE;
+		shaderStages[1].pSpecializationInfo = VK_NULL_HANDLE;
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -207,7 +207,7 @@ namespace Hyperion
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		VkResult result = vkCreateGraphicsPipelines(m_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline);
+		VkResult result = vkCreateGraphicsPipelines(m_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, VK_NULL_HANDLE, &m_graphicsPipeline);
 		if (result != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create graphics pipeline: " + std::to_string(result));
@@ -221,7 +221,7 @@ namespace Hyperion
 		createInfo.codeSize = code.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-		if (vkCreateShaderModule(m_device->device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
+		if (vkCreateShaderModule(m_device->device(), &createInfo, VK_NULL_HANDLE, shaderModule) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create shader module!");
 		}
