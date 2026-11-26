@@ -11,11 +11,19 @@ find_package(VulkanHeaders CONFIG REQUIRED)
 find_package(volk CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
-# Define a custom command to run the batch file
+
+find_program(GLSLC_EXECUTABLE
+    NAMES glslc
+    HINTS "$ENV{VULKAN_SDK}/Bin" "$ENV{VULKAN_SDK}/bin"
+    REQUIRED
+)
+
 add_custom_target(CompileShaders
-    COMMAND cmd.exe /c ${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/Shaders/compile.bat
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/Shaders/
+    COMMAND "${GLSLC_EXECUTABLE}" shader.vert -o vert.spv
+    COMMAND "${GLSLC_EXECUTABLE}" shader.frag -o frag.spv
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/Shaders"
     COMMENT "Compiling Shaders..."
+    VERBATIM
 )
 
 # Add source to this project's executable.
